@@ -1,0 +1,202 @@
+const express = require('express');
+const router = express.Router();
+const { getPool, sql } = require('../config/db');
+const { parseXML } = require('../utils/xmlParser');
+
+/**
+ * GET /api/dashboard-data
+ * Optional query parameters: startDate, endDate (format YYYY-MM-DD)
+ */
+router.get('/', async (req, res) => {
+  const { startDate, endDate } = req.query;
+  let pool;
+  try {
+    pool = await getPool();
+    
+    // Prepare stored procedure call
+    // Assuming the stored procedure accepts @StartDate and @EndDate as optional parameters
+    // If not provided, we pass NULL so the procedure returns all data.
+    const startParam = startDate ? startDate : null;
+    const endParam = endDate ? endDate : null;
+    
+    const result = await pool.request()
+      .input('StartDate', sql.VarChar(10), startParam)
+      .input('EndDate', sql.VarChar(10), endParam)
+      .execute('sp_GetVisitsAndQuestionsXML'); // stored procedure name from user
+    
+    // The stored procedure returns XML in the first recordset's first column?
+    // Depending on how the procedure returns XML, it might be:
+    // 1. A single XML value in the first column of the first row.
+    // 2. Or the recordset itself is the XML (unlikely).
+    // We'll assume the procedure returns a single XML string in the first column of the first recordset.
+    // Adjust if needed.
+    
+    let xmlString = '';
+    if (result.recordset && result.recordset.length > 0) {
+      // Assume the XML is in the first column; we can get the first key's value.
+      const firstRow = result.recordset[0];
+      // Get the first value regardless of column name
+      xmlString = Object.values(firstRow)[0];
+    } else {
+      // No data returned
+      xmlString = '';
+    }
+    
+    if (!xmlString) {
+      // Return empty structure
+      return res.json({
+        totals: {},
+        visitTrend: [],
+        samplesByDelegate: [],
+        delegatePerformance: [],
+        geoData: []
+      });
+    }
+    
+    // Parse XML to JSON
+    const parsed = await parseXML(xmlString);
+    
+    // Depending on XML structure, the parsed object may have a root element.
+    // We need to navigate to the array of rows.
+    // Let's assume the XML looks like:
+    // <root>
+    //   <row VisitDate="..." DelegateName="..." SampleCount="..." VisitCount="..." ... />
+    //   <row ... />
+    // </root>
+    // After xml2js with explicitArray:false, we get:
+    // { root: { row: [ {...}, {...} ] } } if multiple rows, or { root: { row: {...} } } if single.
+    
+    // Let's try to get an array of rows.
+    const getRows = (obj) => {
+      if (!obj) return [];
+      // If the object has a property that is an array, return it.
+      // We'll look for any property that is an array.
+      for (const key in obj) {
+        if (Array.isArray(obj[key])) {
+          return obj[key];
+        }
+        // If the property is an object, maybe it contains the array?
+        if (typeof obj[key] === 'object' && obj[key] !== null) {
+          const nested = getRows(obj[key]);
+          if (nested.length > 0) return nested;
+        }
+      }
+      // If we reach here, maybe the object itself represents a single row?
+      // Wrap it in an array.
+      return [obj];
+    };
+    
+    // Try to get rows from parsed object.
+    // The parsed object might have a root key like 'ArrayOfRow' or 'Dataset'.
+    // We'll attempt to find an array recursively.
+    let rows = getRows(parsed);
+    // If still empty, try to see if parsed is already an array
+    if (rows.length === 0 && Array.isArray(parsed)) {
+      rows = parsed;
+    }
+    
+    // Normalize row keys to lowercase for easier access
+    const normalizeRow = (row) => {
+      const normalized = {};
+      for (const key in row) {
+        if (typeof row[key] === 'object' && row[key] !== null) {
+          // If the value is an object, we might want to skip or handle specially.
+          // For simplicity, we'll skip nested objects.
+          continue;
+        }
+        normalized[key.toLowerCase()] = row[key];
+      }
+      return normalized;
+    };
+    
+    const normRows = rows.map(normalizeRow);
+    
+    // Helper to get value from normalized row with possible key variations
+    const getValue = (row, possibleKeys) => {
+      for (const key of possibleKeys) {
+        if (row.hasOwnProperty(key)) {
+          return row[key];
+        }
+      }
+      return undefined;
+    };
+    
+    // Calculate totals
+    let totalVisits = 0;
+    let totalSamples = 0;
+    const delegateSet = new Set();
+    
+    normRows.forEach(row => {
+      const visitCount = getValue(row, ['visitcount', 'visits']) || 0;
+      const sampleCount = getValue(row, ['samplecount', 'samples']) || 0;
+      const delegateName = getValue(row, ['delegatename', 'delegate']) || '';
+      
+      totalVisits += Number(visitCount) || 0;
+      totalSamples += Number(sampleCount) || 0;
+      if (delegateName) delegateSet.add(delegateName);
+    });
+    
+    const totalDelegates = delegateSet.size;
+    const avgSamplesPerVisit = totalVisits > 0 ? totalSamples / totalVisits : 0;
+    
+    // Visit trend: group by visit date
+    const visitTrendMap = new Map(); // key: date string, value: total visits for that date
+    normRows.forEach(row => {
+      const visitDate = getValue(row, ['visitdate', 'date']);
+      const visitCount = getValue(row, ['visitcount', 'visits']) || 0;
+      if (visitDate) {
+        const current = visitTrendMap.get(visitDate) || 0;
+        visitTrendMap.set(visitDate, current + Number(visitCount));
+      }
+    });
+    const visitTrend = Array.from(visitTrendMap.entries())
+      .map(([date, count]) => ({ date, visitCount: count }))
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    // Samples by delegate
+    const samplesByDelegateMap = new Map(); // key: delegate name, value: total samples
+    normRows.forEach(row => {
+      const delegateName = getValue(row, ['delegatename', 'delegate']);
+      const sampleCount = getValue(row, ['samplecount', 'samples']) || 0;
+      if (delegateName) {
+        const current = samplesByDelegateMap.get(delegateName) || 0;
+        samplesByDelegateMap.set(delegateName, current + Number(sampleCount));
+      }
+    });
+    const samplesByDelegate = Array.from(samplesByDelegateMap.entries())
+      .map(([delegate, value]) => ({ label: delegate, value: Number(value) }))
+      .sort((a, b) => b.value - a.value);
+    
+    // Delegate performance: visits and samples per delegate
+    const delegatePerformanceMap = new Map(); // key: delegate name, value: {visits, samples}
+    normRows.forEach(row => {
+      const delegateName = getValue(row, ['delegatename', 'delegate']);
+      const visitCount = getValue(row, ['visitcount', 'visits']) || 0;
+      const sampleCount = getValue(row, ['samplecount', 'samples']) || 0;
+      if (delegateName) {
+        const current = delegatePerformanceMap.get(delegateName) || { visits: 0, samples: 0 };
+        delegatePerformanceMap.set(delegateName, {
+          visits: current.visits + Number(visitCount),
+          samples: current.samples + Number(sampleCount)
+        });
+      }
+    });
+    const delegatePerformance = Array.from(delegatePerformanceMap.entries())
+      .map(([delegate, { visits, samples }]) => ({
+        delegate,
+        visits: Number(visits),
+        samples: Number(samples)
+      }))
+      .sort((a, b) => b.visits - a.visits);
+    
+    // Geo data: if latitude and longitude exist
+    const geoData = normRows
+      .filter(row => {
+        const lat = getValue(row, ['latitude', 'lat']);
+        const lon = getValue(row, ['longitude', 'lng', 'long']);
+        return lat !== undefined && lon !== undefined && lat !== '' && lon !== '';
+      })
+      .map(row => ({
+        latitude: parseFloat(getValue(row, ['latitude', 'lat'])),
+        longitude: parseFloat(getValue(row, ['longitude', 'lng', 'long'])),
+        label: getValue(row, ['delegatename', 'delegate', '

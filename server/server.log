@@ -1,0 +1,18 @@
+◇ injected env (9) from .env // tip: ⌘ enable debugging { debug: true }
+D:\Nile Techno\Projects\Dashboard\Vists Dashboard\dashboard-project\server\src\routes\dashboard.js:218
+
+
+
+SyntaxError: Unexpected end of input
+    at wrapSafe (node:internal/modules/cjs/loader:1713:18)
+    at Module._compile (node:internal/modules/cjs/loader:1755:20)
+    at Object..js (node:internal/modules/cjs/loader:1913:10)
+    at Module.load (node:internal/modules/cjs/loader:1505:32)
+    at Function._load (node:internal/modules/cjs/loader:1309:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)
+    at Module.require (node:internal/modules/cjs/loader:1527:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (D:\Nile Techno\Projects\Dashboard\Vists Dashboard\dashboard-project\server\src\server.js:4:25)
+    at Module._compile (node:internal/modules/cjs/loader:1781:14)
+
+Node.js v22.23.2
