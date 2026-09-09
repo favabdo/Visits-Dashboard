@@ -33,7 +33,7 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-6">
+      <div className="w-full max-w-md bg-white rounded-lg shadow p-6 sm:p-8 space-y-6">
         {/* Header */}
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900">
