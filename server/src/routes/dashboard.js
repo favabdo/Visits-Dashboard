@@ -30,14 +30,7 @@ router.get('/', authenticate, async (req, res) => {
     pool = new sql.ConnectionPool(getConnectionConfig(dbName));
     await pool.connect();
 
-    // Prepare stored procedure call
-    const startParam = startDate ? startDate : null;
-    const endParam = endDate ? endDate : null;
-
-    const result = await pool.request()
-      .input('StartDate', sql.VarChar(10), startParam)
-      .input('EndDate', sql.VarChar(10), endParam)
-      .execute('sp_GetVisitsAndQuestionsXML');
+    const result = await pool.request().execute('sp_GetVisitsAndQuestionsXML');
 
     // Extract XML string from first column of first row
     let xmlString = '';
@@ -81,10 +74,36 @@ router.get('/', authenticate, async (req, res) => {
     const visitsArray = dataPayload.Visits?.Visit || [];
     const answersArray = dataPayload.VisitAnswers?.Answer || [];
 
-    const visits = Array.isArray(visitsArray) ? visitsArray : [visitsArray];
-    const answers = Array.isArray(answersArray) ? answersArray : [answersArray];
-
     const getVal = (obj, key) => (obj && obj[key] !== undefined && obj[key] !== null) ? obj[key] : undefined;
+
+    const visitDateKey = (visitDateStr) => {
+      if (!visitDateStr) return null;
+      const s = String(visitDateStr);
+      if (/^\d{8}/.test(s)) {
+        return `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
+      }
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+        return s.slice(0, 10);
+      }
+      return null;
+    };
+
+    const inDateRange = (dateKey) => {
+      if (startDate && (!dateKey || dateKey < startDate)) return false;
+      if (endDate && (!dateKey || dateKey > endDate)) return false;
+      return true;
+    };
+
+    let visits = Array.isArray(visitsArray) ? visitsArray : [visitsArray];
+    let answers = Array.isArray(answersArray) ? answersArray : [answersArray];
+
+    if (startDate || endDate) {
+      visits = visits.filter(v => inDateRange(visitDateKey(getVal(v, 'VisitDate'))));
+      const visitIds = new Set(
+        visits.map(v => getVal(v, 'ID')).filter(id => id !== undefined).map(String)
+      );
+      answers = answers.filter(a => visitIds.has(String(getVal(a, 'VisitId'))));
+    }
 
     // Calculate totals
     let totalVisits = visits.length;
