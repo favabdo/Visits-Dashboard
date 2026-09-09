@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
 
 /**
  * POST /api/auth/login
@@ -50,7 +50,11 @@ router.post('/login', async (req, res) => {
       role: row.Status === 1 ? 'user' : 'admin',
       databaseName: row.DatabaseName,
     };
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    const signOptions = {};
+    if (JWT_EXPIRES_IN) {
+      signOptions.expiresIn = JWT_EXPIRES_IN;
+    }
+    const token = jwt.sign(payload, JWT_SECRET, signOptions);
 
     res.json({ accessToken: token });
   } catch (err) {

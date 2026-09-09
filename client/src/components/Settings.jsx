@@ -18,7 +18,14 @@ export default function Settings() {
       localStorage.setItem('username', username);
       window.location.href = '/';
     } catch (err) {
-      setError(err.response?.data?.error ?? 'فشل تسجيل الدخول');
+      const apiMessage = err.response?.data?.error;
+      if (apiMessage) {
+        setError(apiMessage);
+      } else if (err.response?.status === 404 || err.code === 'ERR_NETWORK') {
+        setError('تعذر الوصول لسيرفر الباك إند. تأكد من VITE_API_BASE_URL على Vercel.');
+      } else {
+        setError('فشل تسجيل الدخول');
+      }
     } finally {
       setLoading(false);
     }
