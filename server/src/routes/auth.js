@@ -48,7 +48,7 @@ router.post('/login', async (req, res) => {
     const payload = {
       sub: row.Id,
       role: row.Status === 1 ? 'user' : 'admin',
-      databaseName: row.DatabaseName,
+      databaseName: (row.DatabaseName || process.env.DB_DATABASE || '').trim(),
     };
     const signOptions = {};
     if (JWT_EXPIRES_IN) {

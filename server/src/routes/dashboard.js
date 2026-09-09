@@ -4,6 +4,14 @@ const { getConnectionConfig, sql } = require('../config/db');
 const { parseXML } = require('../utils/xmlParser');
 const authenticate = require('../middleware/authenticate');
 
+function isSafeDatabaseName(name) {
+  if (!name || typeof name !== 'string') return false;
+  const dbName = name.trim();
+  if (!dbName || dbName.length > 128) return false;
+  if (/[;='"\\[\]]/.test(dbName)) return false;
+  return true;
+}
+
 /**
  * GET /api/dashboard-data
  * Optional query parameters: startDate, endDate (format YYYY-MM-DD)
@@ -11,9 +19,9 @@ const authenticate = require('../middleware/authenticate');
  */
 router.get('/', authenticate, async (req, res) => {
   const { startDate, endDate } = req.query;
-  const dbName = req.user.databaseName;
+  const dbName = (req.user.databaseName || process.env.DB_DATABASE || '').trim();
 
-  if (!dbName || !/^[A-Za-z0-9_]+$/.test(dbName)) {
+  if (!isSafeDatabaseName(dbName)) {
     return res.status(400).json({ error: 'Invalid database in token' });
   }
 
