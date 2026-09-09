@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getPool, sql } = require('../config/db');
+const { getConnectionConfig, sql } = require('../config/db');
 const { parseXML } = require('../utils/xmlParser');
 const authenticate = require('../middleware/authenticate');
 
@@ -11,22 +11,15 @@ const authenticate = require('../middleware/authenticate');
  */
 router.get('/', authenticate, async (req, res) => {
   const { startDate, endDate } = req.query;
-  const userId = req.user.userId;
-  const dbName = req.user.databaseName; // from token
+  const dbName = req.user.databaseName;
+
+  if (!dbName || !/^[A-Za-z0-9_]+$/.test(dbName)) {
+    return res.status(400).json({ error: 'Invalid database in token' });
+  }
 
   let pool;
   try {
-    // Create a connection pool specific to the user's database
-    pool = new sql.ConnectionPool({
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      server: process.env.DB_SERVER,
-      database: dbName,
-      options: {
-        encrypt: process.env.DB_ENCRYPT === 'true',
-        trustServerCertificate: process.env.DB_TRUST_CERT === 'true'
-      }
-    });
+    pool = new sql.ConnectionPool(getConnectionConfig(dbName));
     await pool.connect();
 
     // Prepare stored procedure call

@@ -1,23 +1,22 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { login } from '../services/api';
 
 export default function Settings() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => !!localStorage.getItem('accessToken'));
 
   const handleLogin = async e => {
     e.preventDefault();
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post('/api/auth/login', { username, password });
-      const { accessToken } = res.data;
+      const { accessToken } = await login(username, password);
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('username', username);
-      setIsLoggedIn(true);
+      window.location.href = '/';
     } catch (err) {
       setError(err.response?.data?.error ?? 'فشل تسجيل الدخول');
     } finally {
@@ -29,6 +28,7 @@ export default function Settings() {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('username');
     setIsLoggedIn(false);
+    window.location.href = '/settings';
   };
 
   return (

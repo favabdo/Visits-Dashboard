@@ -1,10 +1,9 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
 });
 
-// Request interceptor to attach JWT token if present
 api.interceptors.request.use(
   config => {
     const token = localStorage.getItem('accessToken');
@@ -13,17 +12,14 @@ api.interceptors.request.use(
     }
     return config;
   },
-  error => {
-    return Promise.reject(error);
-  }
+  error => Promise.reject(error)
 );
 
-// Response interceptor for handling 401 (optional)
 api.interceptors.response.use(
   response => response,
   error => {
-    if (error.response && error.response.status === 401) {
-      // Optionally redirect to login
+    const isLoginRequest = error.config?.url?.includes('/auth/login');
+    if (error.response?.status === 401 && !isLoginRequest) {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('username');
       window.location.href = '/settings';
@@ -32,13 +28,14 @@ api.interceptors.response.use(
   }
 );
 
+export const login = async (username, password) => {
+  const response = await api.post('/auth/login', { username, password });
+  return response.data;
+};
+
 export const fetchDashboardData = async (params = {}) => {
-  try {
-    const response = await api.get('/dashboard-data', { params });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.get('/dashboard-data', { params });
+  return response.data;
 };
 
 export default api;

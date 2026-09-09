@@ -14,6 +14,10 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
  */
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
+  if (!JWT_SECRET) {
+    console.error('JWT_SECRET is not set');
+    return res.status(500).json({ error: 'Server auth is not configured' });
+  }
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password required' });
   }
