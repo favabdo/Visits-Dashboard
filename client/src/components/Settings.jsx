@@ -78,12 +78,12 @@ export default function Settings() {
   return (
     <div className="login-page" dir="ltr">
       <section className="login-hero">
-        <img className="login-hero-photo" src="/login-left.png?v=5" alt="" />
+        <img className="login-hero-photo" src="/login-left.png?v=7" alt="" />
         <div className="login-hero-veil-top" />
         <div className="login-hero-veil-bottom" />
 
         <div className="login-hero-content">
-          <BrandLogo size={64} showTag />
+          <BrandLogo markHeight={72} showTag />
           <h1>
             Better Performance.
             <br />
@@ -99,40 +99,50 @@ export default function Settings() {
         <div className="login-features">
           <div>
             <span className="login-feature-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="1.8">
-                <path d="M4 19V5" />
-                <path d="M4 19h16" />
+              <svg viewBox="0 0 24 24" fill="none" stroke="#5B7C99" strokeWidth="1.7">
+                <path d="M4 19V5M4 19h16" />
                 <path d="M7 14l4-5 3 3 5-7" />
               </svg>
             </span>
-            Real-time Insights
+            <span>
+              Real-time
+              <br />
+              Insights
+            </span>
           </div>
           <div>
             <span className="login-feature-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="1.8">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#5B7C99" strokeWidth="1.7">
                 <circle cx="9" cy="8" r="3" />
                 <circle cx="16" cy="9" r="2.4" />
                 <path d="M4 19c.8-3.2 3.2-5 5-5s4.2 1.8 5 5" />
                 <path d="M14 19c.4-2 1.8-3.4 3.4-3.4 1.4 0 2.6.8 3.2 2.4" />
               </svg>
             </span>
-            Better Team Management
+            <span>
+              Better Team
+              <br />
+              Management
+            </span>
           </div>
           <div>
             <span className="login-feature-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="1.8">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#5B7C99" strokeWidth="1.7">
                 <path d="M12 3l8 3v6c0 5-3.4 8.4-8 9.6C7.4 20.4 4 17 4 12V6l8-3Z" />
-                <path d="M9 12l2 2 4-4" />
               </svg>
             </span>
-            Secure & Reliable
+            <span>
+              Secure &
+              <br />
+              Reliable
+            </span>
           </div>
         </div>
       </section>
 
       <section className="login-panel">
         <div className="login-card">
-          <BrandLogo size={40} />
+          <BrandLogo markHeight={40} />
           {isLoggedIn ? (
             <>
               <h2>Welcome Back</h2>
