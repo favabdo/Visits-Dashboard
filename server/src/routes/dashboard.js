@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getConnectionConfig, sql } = require('../config/db');
 const { parseXML } = require('../utils/xmlParser');
+const { buildDashboardFromXml } = require('../utils/visitXml');
 const authenticate = require('../middleware/authenticate');
 
 function extractXmlString(result) {
@@ -18,18 +19,13 @@ function extractXmlString(result) {
       for (const value of Object.values(row)) {
         if (value == null) continue;
         const text = Buffer.isBuffer(value) ? value.toString('utf8') : String(value);
+        const start = text.indexOf('<DataPayload');
+        if (start >= 0) return text.slice(start);
         if (text.includes('<')) return text;
       }
     }
   }
   return '';
-}
-
-function child(node, ...names) {
-  if (!node || typeof node !== 'object') return undefined;
-  const wanted = names.map(name => name.toLowerCase());
-  const key = Object.keys(node).find(k => wanted.includes(k.toLowerCase()));
-  return key ? node[key] : undefined;
 }
 
 function isSafeDatabaseName(name) {
@@ -40,11 +36,21 @@ function isSafeDatabaseName(name) {
   return true;
 }
 
-/**
- * GET /api/dashboard-data
- * Optional query parameters: startDate, endDate (format YYYY-MM-DD)
- * Requires Authorization: Bearer <jwt>
- */
+function emptyDashboard() {
+  return {
+    totals: {
+      totalVisits: 0,
+      totalSamples: 0,
+      totalDelegates: 0,
+      avgSamplesPerVisit: 0
+    },
+    visitTrend: [],
+    samplesByDelegate: [],
+    delegatePerformance: [],
+    geoData: []
+  };
+}
+
 router.get('/', authenticate, async (req, res) => {
   const { startDate, endDate } = req.query;
   const dbName = (req.user.databaseName || process.env.DB_DATABASE || '').trim();
@@ -63,165 +69,18 @@ router.get('/', authenticate, async (req, res) => {
 
     if (!xmlString) {
       console.error('Dashboard XML empty for database', dbName);
-      return res.json({
-        totals: {
-          totalVisits: 0,
-          totalSamples: 0,
-          totalDelegates: 0,
-          avgSamplesPerVisit: 0
-        },
-        visitTrend: [],
-        samplesByDelegate: [],
-        delegatePerformance: [],
-        geoData: []
-      });
+      return res.json(emptyDashboard());
     }
 
     const parsed = await parseXML(xmlString);
-    const dataPayload = child(parsed, 'DataPayload') || parsed;
-    if (!dataPayload) {
-      console.error('Unexpected XML keys:', Object.keys(parsed || {}));
-      return res.status(500).json({ error: 'Invalid XML structure' });
-    }
-
-    const visitsNode = child(dataPayload, 'Visits');
-    const answersNode = child(dataPayload, 'VisitAnswers');
-    const visitsArray = child(visitsNode, 'Visit') || child(dataPayload, 'Visit') || [];
-    const answersArray = child(answersNode, 'Answer') || child(dataPayload, 'Answer') || [];
-
-    const getVal = (obj, key) => {
-      if (!obj || typeof obj !== 'object') return undefined;
-      const found = Object.keys(obj).find(k => k.toLowerCase() === key.toLowerCase());
-      if (!found) return undefined;
-      let val = obj[found];
-      if (Array.isArray(val) && val.length === 1) val = val[0];
-      if (val && typeof val === 'object' && val._ !== undefined) val = val._;
-      return val === undefined || val === null ? undefined : val;
-    };
-
-    const visitDateKey = (visitDateStr) => {
-      if (!visitDateStr) return null;
-      const s = String(visitDateStr);
-      if (/^\d{8}/.test(s)) {
-        return `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
-      }
-      if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
-        return s.slice(0, 10);
-      }
-      return null;
-    };
-
-    const inDateRange = (dateKey) => {
-      if (startDate && (!dateKey || dateKey < startDate)) return false;
-      if (endDate && (!dateKey || dateKey > endDate)) return false;
-      return true;
-    };
-
-    let visits = Array.isArray(visitsArray) ? visitsArray : [visitsArray];
-    let answers = Array.isArray(answersArray) ? answersArray : [answersArray];
-
-    if (startDate || endDate) {
-      visits = visits.filter(v => inDateRange(visitDateKey(getVal(v, 'VisitDate'))));
-      const visitIds = new Set(
-        visits.map(v => getVal(v, 'ID')).filter(id => id !== undefined).map(String)
-      );
-      answers = answers.filter(a => visitIds.has(String(getVal(a, 'VisitId'))));
-    }
-
-    // Calculate totals
-    let totalVisits = visits.length;
-    let totalSamples = answers.length; // each answer is a sample
-
-    const visitIdToRep = new Map();
-    const delegateVisitCount = new Map();
-    const delegateAnswerCount = new Map();
-    const delegateSet = new Set();
-
-    visits.forEach(v => {
-      const id = getVal(v, 'ID');
-      const repId = getVal(v, 'SalesRepId');
-      if (id !== undefined && repId !== undefined) {
-        visitIdToRep.set(String(id), String(repId));
-      }
-      if (repId !== undefined) {
-        delegateSet.add(String(repId));
-        const current = delegateVisitCount.get(String(repId)) || 0;
-        delegateVisitCount.set(String(repId), current + 1);
-      }
+    const data = buildDashboardFromXml(parsed, { startDate, endDate });
+    console.log('Dashboard parsed', {
+      database: dbName,
+      visits: data.totals.totalVisits,
+      answers: data.totals.totalSamples,
+      delegates: data.totals.totalDelegates
     });
-
-    answers.forEach(a => {
-      const visitId = getVal(a, 'VisitId');
-      if (visitId !== undefined) {
-        const repId = visitIdToRep.get(String(visitId));
-        if (repId !== undefined) {
-          const current = delegateAnswerCount.get(repId) || 0;
-          delegateAnswerCount.set(repId, current + 1);
-        }
-      }
-    });
-
-    const totalDelegates = delegateSet.size;
-    const avgSamplesPerVisit = totalVisits > 0 ? totalSamples / totalVisits : 0;
-
-    // Visit trend: group by VisitDate (format YYYYMMDD)
-    const visitTrendMap = new Map();
-    visits.forEach(v => {
-      const visitDateStr = getVal(v, 'VisitDate');
-      if (visitDateStr) {
-        const year = visitDateStr.substring(0, 4);
-        const month = visitDateStr.substring(4, 6);
-        const day = visitDateStr.substring(6, 8);
-        const formattedDate = `${year}-${month}-${day}`;
-        const current = visitTrendMap.get(formattedDate) || 0;
-        visitTrendMap.set(formattedDate, current + 1);
-      }
-    });
-    const visitTrend = Array.from(visitTrendMap.entries())
-      .map(([date, count]) => ({ date, visitCount: count }))
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    // Samples by delegate: label = delegate ID, value = answer count
-    const samplesByDelegate = Array.from(delegateAnswerCount.entries())
-      .map(([delegateId, value]) => ({ label: `Delegate ${delegateId}`, value }))
-      .sort((a, b) => b.value - a.value);
-
-    // Delegate performance: visits and samples per delegate
-    const delegatePerformance = Array.from(delegateSet)
-      .map(delegateId => ({
-        delegate: `Delegate ${delegateId}`,
-        visits: delegateVisitCount.get(delegateId) || 0,
-        samples: delegateAnswerCount.get(delegateId) || 0
-      }))
-      .sort((a, b) => b.visits - a.visits);
-
-    // Geo data: each visit as a point with latitude, longitude
-    const geoData = visits
-      .filter(v => {
-        const lat = getVal(v, 'Latitude');
-        const lon = getVal(v, 'Longitude');
-        return lat !== undefined && lon !== undefined && lat !== '' && lon !== '';
-      })
-      .map(v => ({
-        latitude: parseFloat(getVal(v, 'Latitude')),
-        longitude: parseFloat(getVal(v, 'Longitude')),
-        label: `Delegate ${getVal(v, 'SalesRepId') || 'Unknown'}`,
-        value: 1
-      }));
-
-    // Return the formatted data
-    res.json({
-      totals: {
-        totalVisits,
-        totalSamples,
-        totalDelegates,
-        avgSamplesPerVisit: Number(avgSamplesPerVisit.toFixed(2))
-      },
-      visitTrend,
-      samplesByDelegate,
-      delegatePerformance,
-      geoData
-    });
+    res.json(data);
   } catch (err) {
     console.error('Error in dashboard route:', err);
     res.status(500).json({ error: 'Internal server error' });
