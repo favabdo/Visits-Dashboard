@@ -4,6 +4,34 @@ const { getConnectionConfig, sql } = require('../config/db');
 const { parseXML } = require('../utils/xmlParser');
 const authenticate = require('../middleware/authenticate');
 
+function extractXmlString(result) {
+  const sets = [];
+  if (Array.isArray(result.recordsets) && result.recordsets.length) {
+    sets.push(...result.recordsets);
+  } else if (result.recordset) {
+    sets.push(result.recordset);
+  }
+
+  for (const set of sets) {
+    if (!set || !set.length) continue;
+    for (const row of set) {
+      for (const value of Object.values(row)) {
+        if (value == null) continue;
+        const text = Buffer.isBuffer(value) ? value.toString('utf8') : String(value);
+        if (text.includes('<')) return text;
+      }
+    }
+  }
+  return '';
+}
+
+function child(node, ...names) {
+  if (!node || typeof node !== 'object') return undefined;
+  const wanted = names.map(name => name.toLowerCase());
+  const key = Object.keys(node).find(k => wanted.includes(k.toLowerCase()));
+  return key ? node[key] : undefined;
+}
+
 function isSafeDatabaseName(name) {
   if (!name || typeof name !== 'string') return false;
   const dbName = name.trim();
@@ -31,17 +59,17 @@ router.get('/', authenticate, async (req, res) => {
     await pool.connect();
 
     const result = await pool.request().execute('sp_GetVisitsAndQuestionsXML');
-
-    // Extract XML string from first column of first row
-    let xmlString = '';
-    if (result.recordset && result.recordset.length > 0) {
-      const firstRow = result.recordset[0];
-      xmlString = Object.values(firstRow)[0];
-    }
+    const xmlString = extractXmlString(result);
 
     if (!xmlString) {
+      console.error('Dashboard XML empty for database', dbName);
       return res.json({
-        totals: {},
+        totals: {
+          totalVisits: 0,
+          totalSamples: 0,
+          totalDelegates: 0,
+          avgSamplesPerVisit: 0
+        },
         visitTrend: [],
         samplesByDelegate: [],
         delegatePerformance: [],
@@ -49,32 +77,27 @@ router.get('/', authenticate, async (req, res) => {
       });
     }
 
-    // Parse XML to JSON
     const parsed = await parseXML(xmlString);
-
-    // The XML structure is:
-    // <DataPayload>
-    //   <Questions> ... </Questions>
-    //   <QuestionOptions> ... </QuestionOptions>
-    //   <Visits>
-    //     <Visit> ... </Visit>
-    //     ...
-    //   </Visits>
-    //   <VisitAnswers>
-    //     <Answer> ... </Answer>
-    //     ...
-    //   </VisitAnswers>
-    // </DataPayload>
-    const dataPayload = parsed.DataPayload;
+    const dataPayload = child(parsed, 'DataPayload') || parsed;
     if (!dataPayload) {
-      console.error('Unexpected XML structure: missing DataPayload');
+      console.error('Unexpected XML keys:', Object.keys(parsed || {}));
       return res.status(500).json({ error: 'Invalid XML structure' });
     }
 
-    const visitsArray = dataPayload.Visits?.Visit || [];
-    const answersArray = dataPayload.VisitAnswers?.Answer || [];
+    const visitsNode = child(dataPayload, 'Visits');
+    const answersNode = child(dataPayload, 'VisitAnswers');
+    const visitsArray = child(visitsNode, 'Visit') || child(dataPayload, 'Visit') || [];
+    const answersArray = child(answersNode, 'Answer') || child(dataPayload, 'Answer') || [];
 
-    const getVal = (obj, key) => (obj && obj[key] !== undefined && obj[key] !== null) ? obj[key] : undefined;
+    const getVal = (obj, key) => {
+      if (!obj || typeof obj !== 'object') return undefined;
+      const found = Object.keys(obj).find(k => k.toLowerCase() === key.toLowerCase());
+      if (!found) return undefined;
+      let val = obj[found];
+      if (Array.isArray(val) && val.length === 1) val = val[0];
+      if (val && typeof val === 'object' && val._ !== undefined) val = val._;
+      return val === undefined || val === null ? undefined : val;
+    };
 
     const visitDateKey = (visitDateStr) => {
       if (!visitDateStr) return null;

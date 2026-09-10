@@ -56,6 +56,19 @@ router.post('/login', async (req, res) => {
     }
     const token = jwt.sign(payload, JWT_SECRET, signOptions);
 
+    try {
+      await pool.request()
+        .input('Username', sql.NVarChar, username)
+        .input('Token', sql.NVarChar(sql.MAX), token)
+        .query(`
+          UPDATE dbo.Dashboard_Users
+          SET Token = @Token
+          WHERE [User] = @Username
+        `);
+    } catch (updateErr) {
+      console.error('Could not save token column:', updateErr.message);
+    }
+
     res.json({ accessToken: token });
   } catch (err) {
     console.error('Login error:', err);
