@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" fill="#ffffff"/>
   <defs>
     <linearGradient id="nile-n" x1="38" y1="20" x2="26" y2="44" gradientUnits="userSpaceOnUse">
       <stop stop-color="#2EE6C5"/>
@@ -9,6 +10,7 @@
   <g transform="rotate(-40 32 32)">
     <rect x="4" y="14" width="40" height="16" rx="8" fill="#2EE6C5"/>
     <rect x="20" y="34" width="40" height="16" rx="8" fill="#3B82F6"/>
-    <path d="M38 20 L26 44" stroke="url(#nile-n)" stroke-width="11" stroke-linecap="round"/>
+    <path d="M38 20 C 33 26, 31 38, 26 44" stroke="url(#nile-n)" stroke-width="11" stroke-linecap="round"/>
+    <path d="M38 20 C 33 26, 31 38, 26 44" stroke="#ffffff" stroke-opacity="0.42" stroke-width="3.5" stroke-linecap="round"/>
   </g>
 </svg>
