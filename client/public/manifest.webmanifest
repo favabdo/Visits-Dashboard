@@ -9,8 +9,8 @@
   "orientation": "any",
   "lang": "ar",
   "dir": "rtl",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#eef4fb",
+  "theme_color": "#eef4fb",
   "icons": [
     {
       "src": "/icons/nile-192.png",

@@ -45,7 +45,7 @@ export function prepareVisitTrend(chartData) {
     .sort((a, b) => String(a.date).localeCompare(String(b.date)));
 
   if (sorted.length === 0) {
-    return { points: [], granularity: 'day', tickformat: '%d %b', hint: '' };
+    return { points: [], granularity: 'day', tickformat: '%d/%m', hint: '' };
   }
 
   const span = spanDays(sorted);
@@ -54,7 +54,7 @@ export function prepareVisitTrend(chartData) {
     return {
       points: rollup(sorted, d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`),
       granularity: 'month',
-      tickformat: '%b %Y',
+      tickformat: '%m/%Y',
       hint: 'مجمّعة شهرياً لأن الفترة طويلة. حدّد نطاقاً أقصر لرؤية الأيام.',
     };
   }
@@ -63,7 +63,7 @@ export function prepareVisitTrend(chartData) {
     return {
       points: rollup(sorted, d => formatDay(weekStart(d))),
       granularity: 'week',
-      tickformat: '%d %b',
+      tickformat: '%d/%m',
       hint: 'مجمّعة أسبوعياً. حدّد نطاقاً أقصر لرؤية الأيام.',
     };
   }
@@ -74,7 +74,7 @@ export function prepareVisitTrend(chartData) {
       visitCount: Number(item.visitCount || 0),
     })),
     granularity: 'day',
-    tickformat: '%d %b',
+    tickformat: '%d/%m',
     hint: '',
   };
 }

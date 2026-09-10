@@ -1,7 +1,7 @@
 import React from 'react';
 import Plot from 'react-plotly.js';
 import Panel, { EmptyState } from './Panel';
-import { baseLayout, plotConfig, tokens } from '../theme/chartTheme';
+import { areaFill, baseLayout, plotConfig, tokens } from '../theme/chartTheme';
 import { prepareVisitTrend } from '../utils/visitTrend';
 
 const VisitChart = ({ chartData }) => {
@@ -17,8 +17,7 @@ const VisitChart = ({ chartData }) => {
 
   const layout = {
     ...baseLayout(),
-    margin: { t: 8, r: 16, b: 56, l: 44 },
-    hovermode: 'x unified',
+    margin: { t: 10, r: 16, b: 48, l: 48 },
     xaxis: {
       ...baseLayout().xaxis,
       type: 'date',
@@ -33,7 +32,7 @@ const VisitChart = ({ chartData }) => {
 
   return (
     <Panel title="اتجاه الزيارات">
-      {hint ? <p className="text-xs text-muted -mt-2 mb-3">{hint}</p> : null}
+      {hint ? <p className="-mt-2 mb-3 text-xs text-muted">{hint}</p> : null}
       <Plot
         data={[
           {
@@ -41,15 +40,22 @@ const VisitChart = ({ chartData }) => {
             y: points.map(item => item.visitCount),
             type: 'scatter',
             mode: points.length === 1 ? 'markers' : 'lines+markers',
-            marker: { color: tokens.camo, size: 7 },
-            line: { color: tokens.camo, width: 2, shape: 'linear' },
-            hoverinfo: 'x+y',
+            name: 'الزيارات',
+            line: { color: tokens.blue, width: 3, shape: 'spline', smoothing: 0.6 },
+            marker: {
+              color: tokens.blue,
+              size: 8,
+              line: { color: tokens.panel, width: 2 },
+            },
+            fill: 'tozeroy',
+            fillcolor: areaFill,
+            hovertemplate: '%{y} زيارة<extra></extra>',
           },
         ]}
         layout={layout}
         config={plotConfig}
         useResize={true}
-        style={{ width: '100%', height: '360px' }}
+        style={{ width: '100%', height: '340px' }}
       />
     </Panel>
   );

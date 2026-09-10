@@ -3,6 +3,15 @@ import Plot from 'react-plotly.js';
 import Panel, { EmptyState } from './Panel';
 import { baseLayout, plotConfig, tokens } from '../theme/chartTheme';
 
+const PALETTE = [
+  tokens.blue,
+  tokens.teal,
+  tokens.blueLight,
+  tokens.emerald,
+  tokens.amber,
+  tokens.slate,
+];
+
 const SamplesChart = ({ chartData, title = 'التوزيع' }) => {
   if (!chartData || chartData.length === 0) {
     return (
@@ -14,14 +23,17 @@ const SamplesChart = ({ chartData, title = 'التوزيع' }) => {
 
   const labels = chartData.map(item => item.label);
   const values = chartData.map(item => item.value);
-  const palette = [tokens.camo, tokens.choco, tokens.brown, tokens.sand, tokens.camoSoft];
+  const single = labels.length === 1;
+  const longest = labels.reduce((max, label) => Math.max(max, String(label).length), 0);
+  const rotate = !single && (labels.length > 4 || longest > 10);
 
   const layout = {
     ...baseLayout(),
-    margin: { t: 8, r: 8, b: 80, l: 40 },
+    margin: { t: 10, r: 12, b: rotate ? 84 : 48, l: 48 },
+    bargap: 0.45,
     xaxis: {
       ...baseLayout().xaxis,
-      tickangle: -35,
+      tickangle: rotate ? -35 : 0,
     },
     yaxis: {
       ...baseLayout().yaxis,
@@ -38,15 +50,16 @@ const SamplesChart = ({ chartData, title = 'التوزيع' }) => {
             y: values,
             type: 'bar',
             marker: {
-              color: labels.map((_, i) => palette[i % palette.length]),
+              color: single ? tokens.blue : labels.map((_, i) => PALETTE[i % PALETTE.length]),
+              cornerradius: 8,
             },
-            hoverinfo: 'x+y',
+            hovertemplate: '%{y}<extra></extra>',
           },
         ]}
         layout={layout}
         config={plotConfig}
         useResize={true}
-        style={{ width: '100%' }}
+        style={{ width: '100%', height: '320px' }}
       />
     </Panel>
   );

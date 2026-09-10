@@ -2,18 +2,52 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "IBM Plex Sans Arabic", "Segoe UI", sans-serif;
-  --color-paper: var(--sand-1);
-  --color-panel: #f7f5ef;
-  --color-ink: var(--stone-12);
-  --color-muted: var(--stone-8);
-  --color-line: var(--sand-2);
-  --color-accent: var(--camo-10);
-  --color-accent-hover: var(--camo-11);
-  --color-choco: var(--choco-9);
-  --color-inrange: var(--camo-10);
-  --color-outrange: var(--choco-9);
-  --radius-sm: var(--radius-1);
+  --font-sans: "IBM Plex Sans Arabic", "Plus Jakarta Sans", "Segoe UI", sans-serif;
+
+  /* الأسطح */
+  --color-paper: #eef4fb;
+  --color-panel: #ffffff;
+  --color-panel-soft: #f7faff;
+  --color-line: #e6edf5;
+
+  /* النصوص */
+  --color-ink: #0a1b36;
+  --color-muted: #64748b;
+
+  /* الهوية */
+  --color-accent: #3b82f6;
+  --color-accent-hover: #2563eb;
+  --color-teal: #0d9488;
+  --color-slate: #6b8499;
+
+  /* الحالات */
+  --color-choco: #f59e0b;
+  --color-danger: #e11d48;
+  --color-success: #10b981;
+  --color-inrange: #10b981;
+  --color-outrange: #f59e0b;
+
+  /* خلفيات باهتة للأيقونات والشرائح */
+  --color-accent-soft: #eaf2ff;
+  --color-teal-soft: #e0faf5;
+  --color-choco-soft: #fff4e3;
+  --color-danger-soft: #ffe9ee;
+  --color-success-soft: #e4f8f1;
+
+  /* الحواف */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-card: 20px;
+
+  /* الظلال */
+  --shadow-soft: 0 12px 32px rgba(15, 63, 140, 0.06);
+  --shadow-card: 0 18px 50px rgba(15, 63, 140, 0.08);
+  --shadow-lift: 0 24px 60px rgba(15, 63, 140, 0.13);
+  --shadow-glow: 0 10px 22px rgba(59, 130, 246, 0.28);
+}
+
+:root {
+  --header-h: 68px;
 }
 
 html,
@@ -25,8 +59,8 @@ body,
 
 body {
   margin: 0;
-  background: var(--sand-1);
-  color: var(--stone-12);
+  background: var(--color-paper);
+  color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: var(--font-size-1);
   line-height: var(--font-lineheight-3);
@@ -34,8 +68,8 @@ body {
 }
 
 ::selection {
-  background: var(--camo-3);
-  color: var(--stone-12);
+  background: var(--color-accent-soft);
+  color: var(--color-ink);
 }
 
 #root {

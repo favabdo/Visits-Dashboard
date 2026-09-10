@@ -4,11 +4,11 @@ const PATH_A = 'M38 20 C 33 26, 31 38, 26 44';
 const PATH_B = 'M38 20 C 41 30, 23 34, 26 44';
 const PATH_C = 'M38 20 C 30 28, 34 36, 26 44';
 
-export default function BrandLogo({ size = 56, showTag = false }) {
+export default function BrandLogo({ size = 56, showTag = false, className = '' }) {
   const gid = `nile-n-${useId().replace(/:/g, '')}`;
 
   return (
-    <div className="login-brand">
+    <div className={className ? `login-brand ${className}` : 'login-brand'}>
       <svg
         className="login-brand-mark"
         width={size}

@@ -3,6 +3,12 @@ import Plot from 'react-plotly.js';
 import Panel, { EmptyState } from './Panel';
 import { plotConfig, plotFont, tokens } from '../theme/chartTheme';
 
+const markerStyle = color => ({
+  size: 9,
+  color,
+  line: { color: tokens.panel, width: 1.5 },
+});
+
 const GeoChart = ({ chartData, title = 'التوزيع الجغرافي حسب النطاق' }) => {
   if (!chartData || chartData.length === 0) {
     return (
@@ -32,7 +38,8 @@ const GeoChart = ({ chartData, title = 'التوزيع الجغرافي حسب �
       lat: inRange.map(item => item.latitude),
       text: inRange.map(item => `${item.label || ''} · جوّه النطاق`),
       name: 'جوّه النطاق',
-      marker: { size: 7, color: tokens.camo, opacity: 0.88 },
+      marker: markerStyle(tokens.emerald),
+      hovertemplate: '%{text}<extra></extra>',
     });
   }
   if (outRange.length) {
@@ -42,7 +49,8 @@ const GeoChart = ({ chartData, title = 'التوزيع الجغرافي حسب �
       lat: outRange.map(item => item.latitude),
       text: outRange.map(item => `${item.label || ''} · برّه النطاق`),
       name: 'برّه النطاق',
-      marker: { size: 8, color: tokens.choco, opacity: 0.9 },
+      marker: markerStyle(tokens.amber),
+      hovertemplate: '%{text}<extra></extra>',
     });
   }
 
@@ -50,14 +58,22 @@ const GeoChart = ({ chartData, title = 'التوزيع الجغرافي حسب �
     font: plotFont,
     paper_bgcolor: tokens.panel,
     plot_bgcolor: tokens.panel,
-    margin: { t: 8, b: 32, l: 0, r: 0 },
+    margin: { t: 10, b: 40, l: 0, r: 0 },
+    hoverlabel: {
+      bgcolor: tokens.ink,
+      bordercolor: tokens.ink,
+      font: { family: plotFont.family, size: 12, color: '#ffffff' },
+      align: 'right',
+    },
     geo: {
-      bgcolor: tokens.panel,
+      bgcolor: '#e3effc',
       showframe: false,
       showcoastlines: true,
-      coastlinecolor: tokens.line,
+      coastlinecolor: '#c8dcf1',
+      showcountries: true,
+      countrycolor: '#d3e4f6',
       showland: true,
-      landcolor: tokens.paper,
+      landcolor: tokens.panel,
       showlakes: false,
       projection: { type: 'mercator' },
       center: { lat: 30.5, lon: 31.2 },
@@ -66,14 +82,20 @@ const GeoChart = ({ chartData, title = 'التوزيع الجغرافي حسب �
     },
     legend: {
       orientation: 'h',
-      y: -0.08,
+      y: -0.06,
       font: { size: 12, color: tokens.muted },
     },
   };
 
   return (
     <Panel title={title}>
-      <Plot data={traces} layout={layout} config={plotConfig} useResize={true} style={{ width: '100%' }} />
+      <Plot
+        data={traces}
+        layout={layout}
+        config={plotConfig}
+        useResize={true}
+        style={{ width: '100%', height: '330px' }}
+      />
     </Panel>
   );
 };

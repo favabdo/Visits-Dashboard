@@ -19,7 +19,9 @@ const DelegatePerformanceChart = ({
   const layout = {
     ...baseLayout(),
     barmode: 'group',
-    margin: { t: 8, r: 8, b: 88, l: 40 },
+    bargap: 0.35,
+    bargroupgap: 0.12,
+    margin: { t: 10, r: 12, b: 92, l: 48 },
     xaxis: { ...baseLayout().xaxis, tickangle: -35 },
     yaxis: {
       ...baseLayout().yaxis,
@@ -36,20 +38,22 @@ const DelegatePerformanceChart = ({
             y: chartData.map(item => item.visits),
             name: 'الزيارات',
             type: 'bar',
-            marker: { color: tokens.camo },
+            marker: { color: tokens.blue, cornerradius: 8 },
+            hovertemplate: '%{y}<extra></extra>',
           },
           {
             x: delegates,
             y: chartData.map(item => item.samples),
             name: 'الإجابات',
             type: 'bar',
-            marker: { color: tokens.choco },
+            marker: { color: tokens.teal, cornerradius: 8 },
+            hovertemplate: '%{y}<extra></extra>',
           },
         ]}
         layout={layout}
         config={plotConfig}
         useResize={true}
-        style={{ width: '100%' }}
+        style={{ width: '100%', height: '320px' }}
       />
     </Panel>
   );

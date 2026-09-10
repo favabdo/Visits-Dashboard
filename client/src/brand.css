@@ -1,0 +1,75 @@
+/* هوية Nile techno — أنماط الشعار المشتركة بين صفحة الدخول والصفحات الداخلية */
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.login-brand-mark {
+  display: block;
+  object-fit: contain;
+  overflow: visible;
+  transform-origin: center center;
+  animation: nile-mark-idle 4.8s ease-in-out infinite;
+}
+
+.login-brand-flow {
+  animation: nile-mark-flow 2.2s linear infinite;
+}
+
+@keyframes nile-mark-idle {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(0, -1.5px, 0) rotate(-1deg);
+  }
+}
+
+@keyframes nile-mark-flow {
+  to {
+    stroke-dashoffset: -29;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-brand-mark,
+  .login-brand-flow {
+    animation: none;
+  }
+
+  .login-brand-mark animate {
+    display: none;
+  }
+}
+
+.login-brand-text {
+  text-align: left;
+}
+
+.login-brand-name {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #0a1b36;
+  letter-spacing: -0.04em;
+}
+
+.login-brand-tag {
+  margin: 2px 0 0;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8ea0b5;
+}
+
+/* نسخة مضغوطة تُستخدم في الهيدر الداخلي */
+.login-brand-compact {
+  gap: 9px;
+}
+
+.login-brand-compact .login-brand-name {
+  font-size: 17px;
+}
