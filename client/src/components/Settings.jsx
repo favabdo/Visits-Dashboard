@@ -78,13 +78,12 @@ export default function Settings() {
   return (
     <div className="login-page" dir="ltr">
       <section className="login-hero">
-        <div className="login-hero-media">
-          <img className="login-hero-photo" src="/login-scene.png" alt="" />
-          <img className="login-hero-photo login-hero-photo-dim" src="/login-scene.png" alt="" />
-        </div>
+        <img className="login-hero-photo" src="/login-hero-bg.png" alt="" />
+        <div className="login-hero-fade login-hero-fade-top" />
+        <div className="login-hero-fade login-hero-fade-bottom" />
 
         <div className="login-hero-content">
-          <BrandLogo markHeight={72} showTag />
+          <BrandLogo size={58} showTag />
           <h1>
             Better Performance.
             <br />
@@ -100,9 +99,8 @@ export default function Settings() {
         <div className="login-features">
           <div>
             <span className="login-feature-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#5B7C99" strokeWidth="1.7">
-                <path d="M4 19V5M4 19h16" />
-                <path d="M7 14l4-5 3 3 5-7" />
+              <svg viewBox="0 0 24 24" fill="none" stroke="#6B8499" strokeWidth="1.6">
+                <path d="M4 19V5M4 19h16M7 15l4-5 3 3 6-8" />
               </svg>
             </span>
             <span>
@@ -113,11 +111,10 @@ export default function Settings() {
           </div>
           <div>
             <span className="login-feature-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#5B7C99" strokeWidth="1.7">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#6B8499" strokeWidth="1.6">
                 <circle cx="9" cy="8" r="3" />
-                <circle cx="16" cy="9" r="2.4" />
-                <path d="M4 19c.8-3.2 3.2-5 5-5s4.2 1.8 5 5" />
-                <path d="M14 19c.4-2 1.8-3.4 3.4-3.4 1.4 0 2.6.8 3.2 2.4" />
+                <circle cx="16" cy="9" r="2.3" />
+                <path d="M4 19c1-3.4 3.4-5 5-5s4 1.6 5 5M14.5 19c.5-2 2-3.5 3.5-3.5 1.4 0 2.6.9 3.2 2.6" />
               </svg>
             </span>
             <span>
@@ -128,8 +125,8 @@ export default function Settings() {
           </div>
           <div>
             <span className="login-feature-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#5B7C99" strokeWidth="1.7">
-                <path d="M12 3l8 3v6c0 5-3.4 8.4-8 9.6C7.4 20.4 4 17 4 12V6l8-3Z" />
+              <svg viewBox="0 0 24 24" fill="none" stroke="#6B8499" strokeWidth="1.6">
+                <path d="M12 3l8 3.2v6.2c0 5-3.5 8.4-8 9.6-4.5-1.2-8-4.6-8-9.6V6.2L12 3Z" />
               </svg>
             </span>
             <span>
@@ -143,7 +140,7 @@ export default function Settings() {
 
       <section className="login-panel">
         <div className="login-card">
-          <BrandLogo markHeight={40} />
+          <BrandLogo size={36} />
           {isLoggedIn ? (
             <>
               <h2>Welcome Back</h2>
