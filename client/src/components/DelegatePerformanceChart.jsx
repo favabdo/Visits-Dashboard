@@ -1,7 +1,7 @@
 import React from 'react';
 import Plot from 'react-plotly.js';
 
-const DelegatePerformanceChart = ({ chartData, title = 'أداء المندوبين: الزيارات مقابل العينات' }) => {
+const DelegatePerformanceChart = ({ chartData, title = 'أداء المندوبين: الزيارات مقابل الإجابات' }) => {
   if (!chartData || chartData.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
@@ -25,7 +25,7 @@ const DelegatePerformanceChart = ({ chartData, title = 'أداء المندوب�
   const traceSamples = {
     x: delegates,
     y: samples,
-    name: 'العينات',
+    name: 'الإجابات',
     type: 'bar',
     marker: { color: '#10b981' },
   };

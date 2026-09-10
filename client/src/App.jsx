@@ -8,6 +8,7 @@ import SamplesChart from './components/SamplesChart';
 import DelegatePerformanceChart from './components/DelegatePerformanceChart';
 import GeoChart from './components/GeoChart';
 import Settings from './components/Settings';
+import NotesTable from './components/NotesTable';
 import { fetchDashboardData } from './services/api';
 
 function DashboardShell({ children, onDateChange }) {
@@ -69,24 +70,35 @@ function DashboardPage() {
     <DashboardShell onDateChange={setDateRange}>
       <div className="grid gap-6">
         <MetricsCards data={data.totals} />
-        <div className="col-span-1 sm:col-span-2 lg:col-span-2">
-          <VisitChart chartData={data.visitTrend} />
-        </div>
-        <div className="col-span-1 sm:col-span-1 lg:col-span-1">
+        <VisitChart chartData={data.visitTrend} />
+        <div className="grid gap-6 lg:grid-cols-2">
           <SamplesChart
-            chartData={data.samplesByDelegate}
-            title="توزيع العينات حسب المندوب"
+            chartData={data.ratingDistribution}
+            title="توزيع تقييم مساحة العرض"
+          />
+          <SamplesChart
+            chartData={data.competitorDistribution}
+            title="وجود منتجات منافسة"
           />
         </div>
-        <div className="col-span-1 sm:col-span-1 lg:col-span-1">
+        <div className="grid gap-6 lg:grid-cols-2">
+          <SamplesChart
+            chartData={data.stockoutItems}
+            title="أصناف نفدت وتحتاج إعادة تغذية"
+          />
           <DelegatePerformanceChart
             chartData={data.delegatePerformance}
-            title="أداء المندوبين: الزيارات مقابل العينات"
+            title="أداء المندوبين: الزيارات مقابل الإجابات"
           />
         </div>
-        <div className="col-span-1 sm:col-span-2 lg:col-span-2">
-          <GeoChart chartData={data.geoData} title="التوزيع الجغرافي" />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <SamplesChart
+            chartData={data.samplesByDelegate}
+            title="توزيع الإجابات حسب المندوب"
+          />
+          <NotesTable notes={data.notes} />
         </div>
+        <GeoChart chartData={data.geoData} title="التوزيع الجغرافي حسب النطاق" />
       </div>
     </DashboardShell>
   );

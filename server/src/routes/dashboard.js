@@ -42,12 +42,21 @@ function emptyDashboard() {
       totalVisits: 0,
       totalSamples: 0,
       totalDelegates: 0,
-      avgSamplesPerVisit: 0
+      avgSamplesPerVisit: 0,
+      uniqueCustomers: 0,
+      formCompletionRate: 0,
+      outOfRangeRate: 0,
+      completedVisits: 0,
+      outOfRangeVisits: 0
     },
     visitTrend: [],
     samplesByDelegate: [],
     delegatePerformance: [],
-    geoData: []
+    geoData: [],
+    ratingDistribution: [],
+    competitorDistribution: [],
+    stockoutItems: [],
+    notes: []
   };
 }
 

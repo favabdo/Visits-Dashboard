@@ -54,6 +54,8 @@ function parseCoord(value) {
 
 function buildDashboardFromXml(parsed, { startDate, endDate } = {}) {
   const payload = parsed?.DataPayload || parsed || {};
+  const questions = pickItems(payload, 'Questions', 'Question');
+  const options = pickItems(payload, 'QuestionOptions', 'Option');
   let visits = pickItems(payload, 'Visits', 'Visit');
   let answers = pickItems(payload, 'VisitAnswers', 'Answer');
 
@@ -93,10 +95,87 @@ function buildDashboardFromXml(parsed, { startDate, endDate } = {}) {
     }
   });
 
+  const optionById = new Map();
+  options.forEach(o => {
+    const optionId = field(o, 'OptionId');
+    if (!optionId) return;
+    optionById.set(optionId, {
+      questionId: field(o, 'QuestionId'),
+      text: field(o, 'OptionText') || optionId,
+      order: Number(field(o, 'DisplayOrder') || 0)
+    });
+  });
+
+  const questionById = new Map();
+  questions.forEach(q => {
+    const questionId = field(q, 'QuestionId');
+    if (!questionId) return;
+    questionById.set(questionId, {
+      text: field(q, 'QuestionText') || `سؤال ${questionId}`,
+      type: field(q, 'QuestionType')
+    });
+  });
+
+  const findQuestionId = (predicate) => {
+    for (const [id, q] of questionById.entries()) {
+      if (predicate(q, id)) return id;
+    }
+    return undefined;
+  };
+
+  const ratingQuestionId = findQuestionId(q => q.type === 'dropdown') || '1';
+  const competitorQuestionId = findQuestionId(q => q.type === 'radio') || '2';
+  const stockQuestionId = findQuestionId(q => q.type === 'checklist') || '3';
+  const notesQuestionId = findQuestionId(q => q.type === 'text') || '4';
+
+  const countOptions = (questionId) => {
+    const counts = new Map();
+    answers.forEach(a => {
+      if (field(a, 'QuestionId') !== questionId) return;
+      const optionId = field(a, 'SelectedOptionId');
+      if (!optionId) return;
+      const option = optionById.get(optionId);
+      const label = option?.text || `اختيار ${optionId}`;
+      counts.set(label, (counts.get(label) || 0) + 1);
+    });
+    return Array.from(counts.entries())
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value);
+  };
+
+  const ratingDistribution = countOptions(ratingQuestionId);
+  const competitorDistribution = countOptions(competitorQuestionId);
+  const stockoutItems = countOptions(stockQuestionId);
+
+  const notes = answers
+    .filter(a => field(a, 'QuestionId') === notesQuestionId && field(a, 'AnswerText'))
+    .map(a => {
+      const visitId = field(a, 'VisitId');
+      const visit = visits.find(v => field(v, 'ID') === visitId) || {};
+      return {
+        visitId,
+        salesRepId: field(visit, 'SalesRepId') || visitIdToRep.get(visitId) || '-',
+        customerId: field(visit, 'CustomerID') || '-',
+        visitDate: visitDateKey(field(visit, 'VisitDate')),
+        note: field(a, 'AnswerText'),
+        createdAt: field(a, 'CreatedAt') || ''
+      };
+    })
+    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+    .slice(0, 20);
+
   const totalVisits = visits.length;
   const totalSamples = answers.length;
   const totalDelegates = delegateSet.size;
   const avgSamplesPerVisit = totalVisits > 0 ? totalSamples / totalVisits : 0;
+
+  const customers = new Set(visits.map(v => field(v, 'CustomerID')).filter(Boolean));
+  const visitsWithAnswers = new Set(answers.map(a => field(a, 'VisitId')).filter(Boolean));
+  const completedVisits = visits.filter(v => visitsWithAnswers.has(field(v, 'ID'))).length;
+  const formCompletionRate = totalVisits > 0 ? Number(((completedVisits / totalVisits) * 100).toFixed(1)) : 0;
+
+  const outOfRangeVisits = visits.filter(v => field(v, 'OutRange') === '1').length;
+  const outOfRangeRate = totalVisits > 0 ? Number(((outOfRangeVisits / totalVisits) * 100).toFixed(1)) : 0;
 
   const visitTrend = Array.from(visitTrendMap.entries())
     .map(([date, visitCount]) => ({ date, visitCount }))
@@ -123,6 +202,7 @@ function buildDashboardFromXml(parsed, { startDate, endDate } = {}) {
         latitude,
         longitude,
         label: `مندوب ${field(v, 'SalesRepId') || 'غير معروف'}`,
+        outOfRange: field(v, 'OutRange') === '1',
         value: 1
       };
     })
@@ -133,12 +213,21 @@ function buildDashboardFromXml(parsed, { startDate, endDate } = {}) {
       totalVisits,
       totalSamples,
       totalDelegates,
-      avgSamplesPerVisit: Number(avgSamplesPerVisit.toFixed(2))
+      avgSamplesPerVisit: Number(avgSamplesPerVisit.toFixed(2)),
+      uniqueCustomers: customers.size,
+      formCompletionRate,
+      outOfRangeRate,
+      completedVisits,
+      outOfRangeVisits
     },
     visitTrend,
     samplesByDelegate,
     delegatePerformance,
-    geoData
+    geoData,
+    ratingDistribution,
+    competitorDistribution,
+    stockoutItems,
+    notes
   };
 }
 

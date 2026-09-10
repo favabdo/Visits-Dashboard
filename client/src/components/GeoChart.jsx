@@ -10,36 +10,39 @@ const GeoChart = ({ chartData, title = 'التوزيع الجغرافي' }) => {
     );
   }
 
-  // Check if we have latitude and longitude in the first item
   const firstItem = chartData[0];
   if (firstItem.latitude === undefined || firstItem.longitude === undefined) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
-        <p className="text-gray-500">البيانات لا تحتوي على إحداثيات latitude و longitude</p>
+        <p className="text-gray-500">البيانات لا تحتوي على إحداثيات</p>
       </div>
     );
   }
 
-  const lats = chartData.map(item => item.latitude);
-  const lons = chartData.map(item => item.longitude);
-  // We'll use a third value for marker size/color, e.g., sampleCount or visitCount
-  // Assume the item has a field `value` for the magnitude
-  const values = chartData.map(item => item.value || 1);
+  const inRange = chartData.filter(item => !item.outOfRange);
+  const outRange = chartData.filter(item => item.outOfRange);
 
-  const trace = {
-    type: 'scattergeo',
-    locationmode: 'ISO-3',
-    lon: lons,
-    lat: lats,
-    text: chartData.map(item => item.label || ''), // hover text
-    marker: {
-      size: values.map(v => Math.max(5, Math.min(50, v))), // scale size
-      color: values,
-      colorscale: 'Viridis',
-      reversescale: true,
-      opacity: 0.7,
-    },
-  };
+  const traces = [];
+  if (inRange.length) {
+    traces.push({
+      type: 'scattergeo',
+      lon: inRange.map(item => item.longitude),
+      lat: inRange.map(item => item.latitude),
+      text: inRange.map(item => `${item.label || ''} - جوّه النطاق`),
+      name: 'جوّه النطاق',
+      marker: { size: 8, color: '#16a34a', opacity: 0.8 },
+    });
+  }
+  if (outRange.length) {
+    traces.push({
+      type: 'scattergeo',
+      lon: outRange.map(item => item.longitude),
+      lat: outRange.map(item => item.latitude),
+      text: outRange.map(item => `${item.label || ''} - برّه النطاق`),
+      name: 'برّه النطاق',
+      marker: { size: 9, color: '#dc2626', opacity: 0.85 },
+    });
+  }
 
   const layout = {
     title: {
@@ -50,16 +53,22 @@ const GeoChart = ({ chartData, title = 'التوزيع الجغرافي' }) => {
     geo: {
       showframe: false,
       showcoastlines: true,
-      projectionType: 'equirectangular',
+      showland: true,
+      landcolor: '#f3f4f6',
+      projection: { type: 'mercator' },
+      center: { lat: 30.5, lon: 31.2 },
+      lataxis: { range: [22, 32] },
+      lonaxis: { range: [24, 36] },
     },
-    margin: { t: 50, b: 0, l: 0, r: 0 },
+    legend: { orientation: 'h', y: -0.05 },
+    margin: { t: 50, b: 40, l: 0, r: 0 },
     plot_bgcolor: '#fff',
     paper_bgcolor: '#fff',
   };
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <Plot data={[trace]} layout={layout} useResize={true} />
+      <Plot data={traces} layout={layout} useResize={true} style={{ width: '100%' }} />
     </div>
   );
 };
