@@ -26,8 +26,22 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  object-position: center 72%;
+  object-position: center;
   pointer-events: none;
+  mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.42) 0%,
+    #000 16%,
+    #000 84%,
+    rgba(0, 0, 0, 0.42) 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.42) 0%,
+    #000 16%,
+    #000 84%,
+    rgba(0, 0, 0, 0.42) 100%
+  );
 }
 
 .login-hero-fade {
@@ -40,11 +54,10 @@
 
 .login-hero-fade-top {
   top: 0;
-  height: 28%;
+  height: 22%;
   background: linear-gradient(
     180deg,
-    rgba(231, 243, 251, 0.5) 0%,
-    rgba(231, 243, 251, 0.18) 70%,
+    rgba(231, 243, 251, 0.28) 0%,
     rgba(231, 243, 251, 0) 100%
   );
 }
@@ -54,8 +67,7 @@
   height: 16%;
   background: linear-gradient(
     0deg,
-    rgba(231, 243, 251, 0.42) 0%,
-    rgba(231, 243, 251, 0.12) 70%,
+    rgba(231, 243, 251, 0.28) 0%,
     rgba(231, 243, 251, 0) 100%
   );
 }
