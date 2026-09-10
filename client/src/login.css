@@ -395,6 +395,40 @@
 .login-brand-mark {
   display: block;
   object-fit: contain;
+  overflow: visible;
+  transform-origin: center center;
+  animation: nile-mark-idle 4.8s ease-in-out infinite;
+}
+
+.login-brand-flow {
+  animation: nile-mark-flow 2.2s linear infinite;
+}
+
+@keyframes nile-mark-idle {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(0, -1.5px, 0) rotate(-1deg);
+  }
+}
+
+@keyframes nile-mark-flow {
+  to {
+    stroke-dashoffset: -29;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-brand-mark,
+  .login-brand-flow {
+    animation: none;
+  }
+
+  .login-brand-mark animate {
+    display: none;
+  }
 }
 
 .login-brand-text {
