@@ -13,11 +13,11 @@ import { fetchDashboardData } from './services/api';
 
 function DashboardShell({ children, onDateChange }) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-paper text-ink">
       <Header />
-      <div className="flex min-h-[calc(100vh-64px)]">
+      <div className="flex min-h-[calc(100vh-73px)] flex-col lg:flex-row">
         <Sidebar onDateChange={onDateChange} />
-        <main className="flex-1 p-6">{children}</main>
+        <main className="min-w-0 flex-1 p-5 lg:p-8">{children}</main>
       </div>
     </div>
   );
@@ -48,9 +48,9 @@ function DashboardPage() {
   if (loading) {
     return (
       <DashboardShell onDateChange={setDateRange}>
-        <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          <p className="mt-4 text-gray-600">جاري تحميل البيانات…</p>
+        <div className="flex flex-col items-center justify-center min-h-[40vh]">
+          <div className="h-8 w-8 border-2 border-line border-t-accent rounded-full animate-spin"></div>
+          <p className="mt-4 text-sm text-muted">جاري تجهيز اللوحة</p>
         </div>
       </DashboardShell>
     );
@@ -59,8 +59,8 @@ function DashboardPage() {
   if (error) {
     return (
       <DashboardShell onDateChange={setDateRange}>
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <p className="text-red-600">{error}</p>
+        <div className="border border-choco/30 bg-choco/5 p-4 text-sm text-choco">
+          {error}
         </div>
       </DashboardShell>
     );
@@ -68,37 +68,37 @@ function DashboardPage() {
 
   return (
     <DashboardShell onDateChange={setDateRange}>
-      <div className="grid gap-6">
+      <div className="space-y-5">
         <MetricsCards data={data.totals} />
         <VisitChart chartData={data.visitTrend} />
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-5 lg:grid-cols-2">
           <SamplesChart
             chartData={data.ratingDistribution}
-            title="توزيع تقييم مساحة العرض"
+            title="تقييم مساحة العرض"
           />
           <SamplesChart
             chartData={data.competitorDistribution}
             title="وجود منتجات منافسة"
           />
         </div>
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-5 lg:grid-cols-2">
           <SamplesChart
             chartData={data.stockoutItems}
-            title="أصناف نفدت وتحتاج إعادة تغذية"
+            title="أصناف نفدت"
           />
           <DelegatePerformanceChart
             chartData={data.delegatePerformance}
-            title="أداء المندوبين: الزيارات مقابل الإجابات"
+            title="أداء المندوبين"
           />
         </div>
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-5 lg:grid-cols-2">
           <SamplesChart
             chartData={data.samplesByDelegate}
-            title="توزيع الإجابات حسب المندوب"
+            title="الإجابات حسب المندوب"
           />
           <NotesTable notes={data.notes} />
         </div>
-        <GeoChart chartData={data.geoData} title="التوزيع الجغرافي حسب النطاق" />
+        <GeoChart chartData={data.geoData} title="الخريطة حسب النطاق" />
       </div>
     </DashboardShell>
   );

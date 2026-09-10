@@ -1,47 +1,54 @@
 import React from 'react';
 import Plot from 'react-plotly.js';
+import Panel, { EmptyState } from './Panel';
+import { baseLayout, plotConfig, tokens } from '../theme/chartTheme';
 
-const SamplesChart = ({ chartData, title = 'توزيع العينات' }) => {
+const SamplesChart = ({ chartData, title = 'التوزيع' }) => {
   if (!chartData || chartData.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <p className="text-gray-500">لا توجد بيانات لعرضها</p>
-      </div>
+      <Panel title={title}>
+        <EmptyState />
+      </Panel>
     );
   }
 
   const labels = chartData.map(item => item.label);
   const values = chartData.map(item => item.value);
-
-  const trace = {
-    x: labels,
-    y: values,
-    type: 'bar',
-    marker: { color: '#10b981' },
-  };
+  const palette = [tokens.camo, tokens.choco, tokens.brown, tokens.sand, tokens.camoSoft];
 
   const layout = {
-    title: {
-      text: title,
-      font: { size: 18 },
-      x: 0.5,
-    },
+    ...baseLayout(),
+    margin: { t: 8, r: 8, b: 80, l: 40 },
     xaxis: {
-      title: 'البند',
-      tickangle: -45,
+      ...baseLayout().xaxis,
+      tickangle: -35,
     },
     yaxis: {
-      title: 'العدد',
+      ...baseLayout().yaxis,
+      title: { text: 'العدد', font: { size: 12, color: tokens.muted } },
     },
-    margin: { t: 50, b: 50, l: 50, r: 50 },
-    plot_bgcolor: '#fff',
-    paper_bgcolor: '#fff',
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <Plot data={[trace]} layout={layout} useResize={true} />
-    </div>
+    <Panel title={title}>
+      <Plot
+        data={[
+          {
+            x: labels,
+            y: values,
+            type: 'bar',
+            marker: {
+              color: labels.map((_, i) => palette[i % palette.length]),
+            },
+            hoverinfo: 'x+y',
+          },
+        ]}
+        layout={layout}
+        config={plotConfig}
+        useResize={true}
+        style={{ width: '100%' }}
+      />
+    </Panel>
   );
 };
 

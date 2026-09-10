@@ -1,58 +1,57 @@
 import React from 'react';
 import Plot from 'react-plotly.js';
+import Panel, { EmptyState } from './Panel';
+import { baseLayout, plotConfig, tokens } from '../theme/chartTheme';
 
-const DelegatePerformanceChart = ({ chartData, title = 'أداء المندوبين: الزيارات مقابل الإجابات' }) => {
+const DelegatePerformanceChart = ({
+  chartData,
+  title = 'أداء المندوبين: الزيارات مقابل الإجابات',
+}) => {
   if (!chartData || chartData.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <p className="text-gray-500">لا توجد بيانات لعرضها</p>
-      </div>
+      <Panel title={title}>
+        <EmptyState />
+      </Panel>
     );
   }
 
   const delegates = chartData.map(item => item.delegate);
-  const visits = chartData.map(item => item.visits);
-  const samples = chartData.map(item => item.samples);
-
-  const traceVisits = {
-    x: delegates,
-    y: visits,
-    name: 'الزيارات',
-    type: 'bar',
-    marker: { color: '#3b82f6' },
-  };
-
-  const traceSamples = {
-    x: delegates,
-    y: samples,
-    name: 'الإجابات',
-    type: 'bar',
-    marker: { color: '#10b981' },
-  };
-
   const layout = {
-    title: {
-      text: title,
-      font: { size: 18 },
-      x: 0.5,
-    },
-    xaxis: {
-      title: 'المندوب',
-      tickangle: -45,
-    },
-    yaxis: {
-      title: 'العدد',
-    },
-    margin: { t: 50, b: 50, l: 50, r: 50 },
+    ...baseLayout(),
     barmode: 'group',
-    plot_bgcolor: '#fff',
-    paper_bgcolor: '#fff',
+    margin: { t: 8, r: 8, b: 88, l: 40 },
+    xaxis: { ...baseLayout().xaxis, tickangle: -35 },
+    yaxis: {
+      ...baseLayout().yaxis,
+      title: { text: 'العدد', font: { size: 12, color: tokens.muted } },
+    },
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <Plot data={[traceVisits, traceSamples]} layout={layout} useResize={true} />
-    </div>
+    <Panel title={title}>
+      <Plot
+        data={[
+          {
+            x: delegates,
+            y: chartData.map(item => item.visits),
+            name: 'الزيارات',
+            type: 'bar',
+            marker: { color: tokens.camo },
+          },
+          {
+            x: delegates,
+            y: chartData.map(item => item.samples),
+            name: 'الإجابات',
+            type: 'bar',
+            marker: { color: tokens.choco },
+          },
+        ]}
+        layout={layout}
+        config={plotConfig}
+        useResize={true}
+        style={{ width: '100%' }}
+      />
+    </Panel>
   );
 };
 

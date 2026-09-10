@@ -12,6 +12,7 @@
   "dependencies": {
     "axios": "^1.20.0",
     "date-fns": "^4.4.0",
+    "open-props": "^1.7.23",
     "plotly.js": "^4.1.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

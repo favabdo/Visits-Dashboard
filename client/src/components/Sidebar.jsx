@@ -9,34 +9,47 @@ const Sidebar = ({ onDateChange }) => {
     onDateChange({ startDate, endDate });
   };
 
+  const handleReset = () => {
+    setStartDate('');
+    setEndDate('');
+    onDateChange({ startDate: '', endDate: '' });
+  };
+
   return (
-    <aside className="bg-white shadow-md">
-      <div className="p-6">
-        <h2 className="text-lg font-bold mb-4">الفلاتر</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <aside className="w-full shrink-0 border-b border-line bg-panel lg:sticky lg:top-[73px] lg:h-[calc(100vh-73px)] lg:w-64 lg:border-b-0 lg:border-e">
+      <div className="p-5">
+        <h2 className="text-[13px] font-semibold text-ink mb-4">نطاق التاريخ</h2>
+        <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3 lg:grid-cols-1 lg:gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">تاريخ البداية</label>
+            <label className="block text-xs text-muted mb-1.5">من</label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full bg-paper border border-line rounded-sm px-3 py-2 text-sm text-ink focus:outline-none focus:border-accent"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">تاريخ النهاية</label>
+            <label className="block text-xs text-muted mb-1.5">إلى</label>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full bg-paper border border-line rounded-sm px-3 py-2 text-sm text-ink focus:outline-none focus:border-accent"
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="col-span-2 w-full bg-accent text-panel text-sm py-2 px-4 rounded-sm hover:bg-accent-hover lg:col-span-1"
           >
-            تطبيق الفلاتر
+            تطبيق
+          </button>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="col-span-2 w-full text-sm text-muted py-1 hover:text-ink lg:col-span-1"
+          >
+            مسح الفترة
           </button>
         </form>
       </div>

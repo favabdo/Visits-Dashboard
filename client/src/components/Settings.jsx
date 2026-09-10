@@ -39,42 +39,28 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md bg-white rounded-lg shadow p-6 sm:p-8 space-y-6">
-        {/* Header */}
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900">
-            {isLoggedIn ? 'الإعدادات' : 'تسجيل الدخول'}
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            {isLoggedIn
-              ? 'أنت مسجل الدخول. يمكنك تعديل بياناتك أو تسجيل الخروج.'
-              : 'أدخل بياناتك للوصول إلى لوحة التحكم'}
-          </p>
-        </div>
+    <div className="min-h-screen bg-paper flex items-center justify-center px-4">
+      <div className="w-full max-w-sm bg-panel border border-line rounded-sm p-8">
+        <p className="text-[11px] text-muted mb-1">تحليل التغطية الميدانية</p>
+        <h2 className="text-xl font-semibold text-ink">
+          {isLoggedIn ? 'الإعدادات' : 'دخول اللوحة'}
+        </h2>
+        <p className="mt-2 text-sm text-muted">
+          {isLoggedIn
+            ? 'يمكنك متابعة اللوحة أو تسجيل الخروج.'
+            : 'استخدم حساب اللوحة، مش حساب SQL.'}
+        </p>
 
-        {/* Error message */}
         {error && (
-          <div className="rounded-md bg-red-50 p-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 10-2 0v4a1 1 0 100 2h2a1 1 0 100-2v-4zm-1 9a1 1 0 100-2h2a1 1 0 100 2H9z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">خطأ</h3>
-                <div className="mt-1 text-sm text-red-700">{error}</div>
-              </div>
-            </div>
+          <div className="mt-5 border border-choco/30 bg-choco/5 p-3 text-sm text-choco">
+            {error}
           </div>
         )}
 
         {!isLoggedIn ? (
-          <form onSubmit={handleLogin} className="space-y-6">
-            {/* Username */}
+          <form onSubmit={handleLogin} className="mt-6 space-y-4">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="username" className="block text-xs text-muted mb-1.5">
                 اسم المستخدم
               </label>
               <input
@@ -83,13 +69,11 @@ export default function Settings() {
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 required
-                className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="w-full bg-paper border border-line rounded-sm px-3 py-2 text-sm text-ink focus:outline-none focus:border-accent"
               />
             </div>
-
-            {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="password" className="block text-xs text-muted mb-1.5">
                 كلمة المرور
               </label>
               <input
@@ -98,45 +82,37 @@ export default function Settings() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
-                className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="w-full bg-paper border border-line rounded-sm px-3 py-2 text-sm text-ink focus:outline-none focus:border-accent"
               />
             </div>
-
-            {/* Submit button */}
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              >
-                {loading ? 'جاري الدخول...' : 'دخول'}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-accent text-panel text-sm py-2.5 rounded-sm hover:bg-accent-hover disabled:opacity-60"
+            >
+              {loading ? 'جاري الدخول...' : 'دخول'}
+            </button>
           </form>
         ) : (
-          <div className="space-y-4">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-gray-700">
-                  أنت مسجل الدخول ك: <span className="font-medium">{localStorage.getItem('username') ?? '(اسم المستخدم)'}</span>
-                </p>
-              </div>
-            </div>
-
-            {/* Logout button */}
-            <div>
-              <button
-                onClick={handleLogout}
-                className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-              >
-                تسجيل الخروج
-              </button>
-            </div>
+          <div className="mt-6 space-y-3">
+            <p className="text-sm text-muted">
+              مسجل كـ{' '}
+              <span className="text-ink font-medium">
+                {localStorage.getItem('username') ?? 'مستخدم'}
+              </span>
+            </p>
+            <a
+              href="/"
+              className="block w-full bg-accent text-panel text-sm py-2.5 rounded-sm text-center hover:bg-accent-hover"
+            >
+              فتح اللوحة
+            </a>
+            <button
+              onClick={handleLogout}
+              className="w-full border border-line text-ink text-sm py-2.5 rounded-sm hover:bg-paper"
+            >
+              تسجيل الخروج
+            </button>
           </div>
         )}
       </div>

@@ -1,2 +1,52 @@
+@import "open-props/open-props.min.css";
 @import "tailwindcss";
-@config "../tailwind.config.js";
+
+@theme {
+  --font-sans: "IBM Plex Sans Arabic", "Segoe UI", sans-serif;
+  --color-paper: var(--sand-1);
+  --color-panel: #f7f5ef;
+  --color-ink: var(--stone-12);
+  --color-muted: var(--stone-8);
+  --color-line: var(--sand-2);
+  --color-accent: var(--camo-10);
+  --color-accent-hover: var(--camo-11);
+  --color-choco: var(--choco-9);
+  --color-inrange: var(--camo-10);
+  --color-outrange: var(--choco-9);
+  --radius-sm: var(--radius-1);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--sand-1);
+  color: var(--stone-12);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-1);
+  line-height: var(--font-lineheight-3);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--camo-3);
+  color: var(--stone-12);
+}
+
+#root {
+  isolation: isolate;
+}
+
+input[type="date"],
+input[type="text"],
+input[type="password"] {
+  font-family: inherit;
+}
+
+.js-plotly-plot .plotly .modebar {
+  display: none !important;
+}
