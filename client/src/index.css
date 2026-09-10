@@ -85,3 +85,25 @@ input[type="password"] {
 .js-plotly-plot .plotly .modebar {
   display: none !important;
 }
+
+/* شريط تقدّم متحرك يُستخدم في شاشات التحميل */
+@keyframes loading-bar-slide {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(330%);
+  }
+}
+
+.loading-bar {
+  background: linear-gradient(90deg, #2ee6c5, #3b82f6);
+  animation: loading-bar-slide 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-bar {
+    animation: none;
+    width: 100%;
+  }
+}

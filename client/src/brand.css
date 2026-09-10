@@ -73,3 +73,13 @@
 .login-brand-compact .login-brand-name {
   font-size: 17px;
 }
+
+/* نسخة رأسية تُستخدم في شاشات التحميل */
+.login-brand-stacked {
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-brand-stacked .login-brand-text {
+  text-align: center;
+}

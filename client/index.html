@@ -19,8 +19,188 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #eef4fb;
+      }
+
+      #boot-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: linear-gradient(180deg, #f7faff 0%, #eef4fb 100%);
+        font-family: "Plus Jakarta Sans", "IBM Plex Sans Arabic", "Segoe UI", sans-serif;
+        transition: opacity 0.35s ease, visibility 0.35s ease;
+      }
+
+      #boot-loader.is-hidden {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      .boot-mark {
+        width: 64px;
+        height: 64px;
+        display: block;
+        overflow: visible;
+        animation: boot-mark-idle 4.8s ease-in-out infinite;
+      }
+
+      .boot-name {
+        margin-top: 4px;
+        font-size: 21px;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        color: #0a1b36;
+      }
+
+      .boot-tag {
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: #93a7b8;
+      }
+
+      .boot-bar {
+        width: 132px;
+        height: 4px;
+        margin-top: 14px;
+        border-radius: 999px;
+        background: #e2ecf8;
+        overflow: hidden;
+      }
+
+      .boot-bar span {
+        display: block;
+        width: 40%;
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #2ee6c5, #3b82f6);
+        animation: boot-bar-slide 1.2s ease-in-out infinite;
+      }
+
+      .boot-flow {
+        animation: boot-flow 2.2s linear infinite;
+      }
+
+      @keyframes boot-mark-idle {
+        0%,
+        100% {
+          transform: translate3d(0, 0, 0) rotate(0deg);
+        }
+        50% {
+          transform: translate3d(0, -1.5px, 0) rotate(-1deg);
+        }
+      }
+
+      @keyframes boot-flow {
+        to {
+          stroke-dashoffset: -29;
+        }
+      }
+
+      @keyframes boot-bar-slide {
+        0% {
+          transform: translateX(-110%);
+        }
+        100% {
+          transform: translateX(330%);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .boot-mark,
+        .boot-flow {
+          animation: none;
+        }
+
+        .boot-mark animate {
+          display: none;
+        }
+
+        .boot-bar span {
+          animation: none;
+          width: 100%;
+        }
+      }
+    </style>
   </head>
   <body>
+    <div id="boot-loader">
+      <svg
+        class="boot-mark"
+        viewBox="0 0 64 64"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id="boot-grad" x1="38" y1="20" x2="26" y2="44" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#2EE6C5">
+              <animate
+                attributeName="stop-color"
+                values="#2EE6C5;#5EEAD4;#3B82F6;#2EE6C5"
+                dur="4s"
+                repeatCount="indefinite"
+              />
+            </stop>
+            <stop offset="100%" stop-color="#3B82F6">
+              <animate
+                attributeName="stop-color"
+                values="#3B82F6;#2EE6C5;#60A5FA;#3B82F6"
+                dur="4s"
+                repeatCount="indefinite"
+              />
+            </stop>
+          </linearGradient>
+        </defs>
+        <g transform="rotate(-40 32 32)">
+          <rect x="4" y="14" width="40" height="16" rx="8" fill="#2EE6C5" />
+          <rect x="20" y="34" width="40" height="16" rx="8" fill="#3B82F6" />
+          <path d="M38 20 C 33 26, 31 38, 26 44" stroke="url(#boot-grad)" stroke-width="11" stroke-linecap="round">
+            <animate
+              attributeName="d"
+              values="M38 20 C 33 26, 31 38, 26 44;M38 20 C 41 30, 23 34, 26 44;M38 20 C 30 28, 34 36, 26 44;M38 20 C 33 26, 31 38, 26 44"
+              dur="3.6s"
+              repeatCount="indefinite"
+              calcMode="spline"
+              keyTimes="0;0.33;0.66;1"
+              keySplines="0.45 0 0.2 1;0.45 0 0.2 1;0.45 0 0.2 1"
+            />
+          </path>
+          <path
+            class="boot-flow"
+            d="M38 20 C 33 26, 31 38, 26 44"
+            stroke="#fff"
+            stroke-opacity="0.42"
+            stroke-width="3.5"
+            stroke-linecap="round"
+            stroke-dasharray="7 22"
+          >
+            <animate
+              attributeName="d"
+              values="M38 20 C 33 26, 31 38, 26 44;M38 20 C 41 30, 23 34, 26 44;M38 20 C 30 28, 34 36, 26 44;M38 20 C 33 26, 31 38, 26 44"
+              dur="3.6s"
+              repeatCount="indefinite"
+              calcMode="spline"
+              keyTimes="0;0.33;0.66;1"
+              keySplines="0.45 0 0.2 1;0.45 0 0.2 1;0.45 0 0.2 1"
+            />
+          </path>
+        </g>
+      </svg>
+      <p class="boot-name">Nile techno</p>
+      <p class="boot-tag">Target · Manage · Grow</p>
+      <div class="boot-bar"><span></span></div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

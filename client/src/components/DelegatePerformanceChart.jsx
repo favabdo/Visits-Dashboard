@@ -39,7 +39,7 @@ const DelegatePerformanceChart = ({
             name: 'الزيارات',
             type: 'bar',
             marker: { color: tokens.blue, cornerradius: 8 },
-            hovertemplate: '%{y}<extra></extra>',
+            hovertemplate: '%{x}<br>%{y}<extra>%{fullData.name}</extra>',
           },
           {
             x: delegates,
@@ -47,7 +47,7 @@ const DelegatePerformanceChart = ({
             name: 'الإجابات',
             type: 'bar',
             marker: { color: tokens.teal, cornerradius: 8 },
-            hovertemplate: '%{y}<extra></extra>',
+            hovertemplate: '%{x}<br>%{y}<extra>%{fullData.name}</extra>',
           },
         ]}
         layout={layout}

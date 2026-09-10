@@ -9,6 +9,7 @@ import DelegatePerformanceChart from './components/DelegatePerformanceChart';
 import GeoChart from './components/GeoChart';
 import Settings from './components/Settings';
 import NotesTable from './components/NotesTable';
+import LoadingScreen from './components/LoadingScreen';
 import { fetchDashboardData } from './services/api';
 
 function DashboardShell({ children, onDateChange }) {
@@ -20,33 +21,6 @@ function DashboardShell({ children, onDateChange }) {
         <main className="min-w-0 flex-1 px-5 py-6 lg:px-8 lg:py-8">
           <div className="mx-auto max-w-[1500px]">{children}</div>
         </main>
-      </div>
-    </div>
-  );
-}
-
-function DashboardSkeleton() {
-  return (
-    <div className="space-y-6" aria-hidden="true">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, index) => (
-          <div key={index} className="rounded-card border border-line bg-panel p-5 shadow-soft">
-            <div className="h-3 w-24 animate-pulse rounded-full bg-line" />
-            <div className="mt-4 h-7 w-20 animate-pulse rounded-lg bg-line" />
-          </div>
-        ))}
-      </div>
-      <div className="rounded-card border border-line bg-panel p-6 shadow-soft">
-        <div className="h-3 w-32 animate-pulse rounded-full bg-line" />
-        <div className="mt-6 h-64 animate-pulse rounded-xl bg-panel-soft" />
-      </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        {Array.from({ length: 2 }).map((_, index) => (
-          <div key={index} className="rounded-card border border-line bg-panel p-6 shadow-soft">
-            <div className="h-3 w-28 animate-pulse rounded-full bg-line" />
-            <div className="mt-6 h-56 animate-pulse rounded-xl bg-panel-soft" />
-          </div>
-        ))}
       </div>
     </div>
   );
@@ -141,7 +115,7 @@ function DashboardPage() {
   if (loading) {
     return (
       <DashboardShell onDateChange={setDateRange}>
-        <DashboardSkeleton />
+        <LoadingScreen />
       </DashboardShell>
     );
   }
@@ -187,6 +161,15 @@ function RequireToken({ children }) {
 }
 
 function App() {
+  // إخفاء شاشة البداية بعد أول رسم للتطبيق
+  useEffect(() => {
+    const splash = document.getElementById('boot-loader');
+    if (!splash) return undefined;
+    splash.classList.add('is-hidden');
+    const timer = window.setTimeout(() => splash.remove(), 400);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   return (
     <Router>
       <Routes>

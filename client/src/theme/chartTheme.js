@@ -44,7 +44,7 @@ export function baseLayout(title) {
       font: { family: plotFont.family, size: 12, color: '#ffffff' },
       align: 'right',
     },
-    hovermode: 'x unified',
+    hovermode: 'closest',
     xaxis: {
       gridcolor: tokens.grid,
       linecolor: tokens.line,

@@ -53,7 +53,7 @@ const SamplesChart = ({ chartData, title = 'التوزيع' }) => {
               color: single ? tokens.blue : labels.map((_, i) => PALETTE[i % PALETTE.length]),
               cornerradius: 8,
             },
-            hovertemplate: '%{y}<extra></extra>',
+            hovertemplate: '%{x}<br>%{y}<extra></extra>',
           },
         ]}
         layout={layout}

@@ -49,7 +49,7 @@ const VisitChart = ({ chartData }) => {
             },
             fill: 'tozeroy',
             fillcolor: areaFill,
-            hovertemplate: '%{y} زيارة<extra></extra>',
+            hovertemplate: '%{x|%d/%m}<br>%{y} زيارة<extra></extra>',
           },
         ]}
         layout={layout}
