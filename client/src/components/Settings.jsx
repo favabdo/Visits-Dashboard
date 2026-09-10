@@ -78,9 +78,10 @@ export default function Settings() {
   return (
     <div className="login-page" dir="ltr">
       <section className="login-hero">
-        <img className="login-hero-photo" src="/login-left.png?v=7" alt="" />
-        <div className="login-hero-veil-top" />
-        <div className="login-hero-veil-bottom" />
+        <div className="login-hero-media">
+          <img className="login-hero-photo" src="/login-scene.png" alt="" />
+          <img className="login-hero-photo login-hero-photo-dim" src="/login-scene.png" alt="" />
+        </div>
 
         <div className="login-hero-content">
           <BrandLogo markHeight={72} showTag />

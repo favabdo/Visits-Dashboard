@@ -13,8 +13,16 @@
   position: relative;
   overflow: hidden;
   min-height: 100vh;
-  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   text-align: center;
+}
+
+.login-hero-media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
 }
 
 .login-hero-photo {
@@ -22,52 +30,42 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center center;
   pointer-events: none;
 }
 
-.login-hero-veil-top,
-.login-hero-veil-bottom {
-  position: absolute;
-  left: 0;
-  right: 0;
-  pointer-events: none;
-}
-
-.login-hero-veil-top {
-  top: 0;
-  height: 28%;
-  background: linear-gradient(
+.login-hero-photo-dim {
+  filter: brightness(0.52);
+  mask-image: linear-gradient(
     180deg,
-    rgba(236, 247, 253, 0.55) 0%,
-    rgba(236, 247, 253, 0.28) 55%,
-    rgba(236, 247, 253, 0) 100%
+    #000 0%,
+    #000 16%,
+    transparent 34%,
+    transparent 74%,
+    #000 90%,
+    #000 100%
   );
-}
-
-.login-hero-veil-bottom {
-  bottom: 0;
-  height: 18%;
-  background: linear-gradient(
-    0deg,
-    rgba(244, 248, 252, 0.5) 0%,
-    rgba(244, 248, 252, 0.22) 55%,
-    rgba(244, 248, 252, 0) 100%
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    #000 0%,
+    #000 16%,
+    transparent 34%,
+    transparent 74%,
+    #000 90%,
+    #000 100%
   );
 }
 
 .login-hero-content {
-  position: absolute;
+  position: relative;
   z-index: 2;
-  top: 7.5%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(520px, 86%);
+  width: min(560px, 88%);
+  margin: 0 auto;
+  padding: 56px 16px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-shadow: 0 0 18px rgba(236, 247, 253, 0.95), 0 1px 0 rgba(236, 247, 253, 0.7);
 }
 
 .login-hero .login-brand {
@@ -120,20 +118,19 @@
 }
 
 .login-features {
-  position: absolute;
+  position: relative;
   z-index: 2;
-  left: 0;
-  right: 0;
-  bottom: 4.5%;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0;
+  padding: 18px 12px 32px;
   color: #6b7c90;
   font-size: 13px;
   line-height: 1.25;
   font-weight: 500;
   text-align: left;
+  background: transparent;
 }
 
 .login-features > div {
@@ -156,7 +153,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.35);
+  background: #fff;
 }
 
 .login-feature-icon svg {
