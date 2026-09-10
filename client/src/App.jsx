@@ -107,7 +107,7 @@ function DashboardPage() {
 function RequireToken({ children }) {
   const token = localStorage.getItem('accessToken');
   if (!token) {
-    return <Navigate to="/settings" replace />;
+    return <Navigate to="/login" replace />;
   }
   return children;
 }
@@ -116,7 +116,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/settings" element={<Settings />} />
+        <Route path="/login" element={<Settings />} />
+        <Route path="/settings" element={<Navigate to="/login" replace />} />
         <Route
           path="/*"
           element={

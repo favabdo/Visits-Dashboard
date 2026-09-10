@@ -30,15 +30,6 @@ function IconEye() {
   );
 }
 
-function Feature({ children, icon }) {
-  return (
-    <div>
-      {icon}
-      <span>{children}</span>
-    </div>
-  );
-}
-
 export default function Settings() {
   const remembered = localStorage.getItem('rememberUsername') || '';
   const [username, setUsername] = useState(remembered);
@@ -81,15 +72,18 @@ export default function Settings() {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('username');
     setIsLoggedIn(false);
-    window.location.href = '/settings';
+    window.location.href = '/login';
   };
 
   return (
     <div className="login-page" dir="ltr">
       <section className="login-hero">
-        <div className="login-skyline" />
+        <img className="login-hero-photo" src="/login-left.png" alt="" />
+        <div className="login-hero-veil-top" />
+        <div className="login-hero-veil-bottom" />
+
         <div className="login-hero-content">
-          <BrandLogo />
+          <BrandLogo size={64} showTag />
           <h1>
             Better Performance.
             <br />
@@ -100,80 +94,43 @@ export default function Settings() {
           </p>
         </div>
 
-        <div className="login-stage">
-          <div className="login-laptop">
-            <div className="login-laptop-bar">
-              <span className="login-laptop-dot" />
-              <span className="login-laptop-dot" />
-              <span className="login-laptop-dot" />
-              Nile techno
-            </div>
-            <div className="login-mini">
-              <div className="login-mini-side">
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-              </div>
-              <div className="login-mini-main">
-                <div className="login-mini-card">
-                  <small>Total visits</small>
-                  <b>1,248</b>
-                </div>
-                <div className="login-mini-card">
-                  <small>Coverage</small>
-                  <b>24.8%</b>
-                </div>
-                <div className="login-mini-card">
-                  <small>Team</small>
-                  <b>312</b>
-                </div>
-                <div className="login-mini-card login-mini-wide" />
-                <div className="login-mini-card login-mini-donut" />
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div className="login-features">
-          <Feature
-            icon={
-              <svg viewBox="0 0 32 32" fill="none">
-                <circle cx="16" cy="16" r="15" stroke="#94a3b8" />
-                <path d="M8 20l5-6 4 4 7-8" stroke="#3b82f6" strokeWidth="1.8" fill="none" />
+          <div>
+            <span className="login-feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="1.8">
+                <path d="M4 19V5" />
+                <path d="M4 19h16" />
+                <path d="M7 14l4-5 3 3 5-7" />
               </svg>
-            }
-          >
+            </span>
             Real-time Insights
-          </Feature>
-          <Feature
-            icon={
-              <svg viewBox="0 0 32 32" fill="none">
-                <circle cx="16" cy="16" r="15" stroke="#94a3b8" />
-                <circle cx="16" cy="13" r="3" stroke="#3b82f6" />
-                <path d="M10 22c1.2-3 10.8-3 12 0" stroke="#3b82f6" />
+          </div>
+          <div>
+            <span className="login-feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="1.8">
+                <circle cx="9" cy="8" r="3" />
+                <circle cx="16" cy="9" r="2.4" />
+                <path d="M4 19c.8-3.2 3.2-5 5-5s4.2 1.8 5 5" />
+                <path d="M14 19c.4-2 1.8-3.4 3.4-3.4 1.4 0 2.6.8 3.2 2.4" />
               </svg>
-            }
-          >
+            </span>
             Better Team Management
-          </Feature>
-          <Feature
-            icon={
-              <svg viewBox="0 0 32 32" fill="none">
-                <circle cx="16" cy="16" r="15" stroke="#94a3b8" />
-                <path d="M16 8l8 3v6c0 5-3.4 8.2-8 9-4.6-.8-8-4-8-9v-6l8-3Z" stroke="#3b82f6" />
+          </div>
+          <div>
+            <span className="login-feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="1.8">
+                <path d="M12 3l8 3v6c0 5-3.4 8.4-8 9.6C7.4 20.4 4 17 4 12V6l8-3Z" />
+                <path d="M9 12l2 2 4-4" />
               </svg>
-            }
-          >
+            </span>
             Secure & Reliable
-          </Feature>
+          </div>
         </div>
       </section>
 
       <section className="login-panel">
         <div className="login-card">
-          <BrandLogo />
+          <BrandLogo size={40} />
           {isLoggedIn ? (
             <>
               <h2>Welcome Back</h2>

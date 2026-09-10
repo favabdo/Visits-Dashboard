@@ -6,7 +6,7 @@ const Header = () => {
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('username');
-    window.location.href = '/settings';
+    window.location.href = '/login';
   };
 
   return (
