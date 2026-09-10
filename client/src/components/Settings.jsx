@@ -78,7 +78,7 @@ export default function Settings() {
   return (
     <div className="login-page" dir="ltr">
       <section className="login-hero">
-        <img className="login-hero-photo" src="/login-left.png" alt="" />
+        <img className="login-hero-photo" src="/login-left.png?v=5" alt="" />
         <div className="login-hero-veil-top" />
         <div className="login-hero-veil-bottom" />
 
@@ -90,7 +90,9 @@ export default function Settings() {
             Stronger Teams.
           </h1>
           <p className="login-hero-copy">
-            Monitor your sales team, track visits, and turn opportunities into success.
+            Monitor your sales team, track visits,
+            <br />
+            and turn opportunities into success.
           </p>
         </div>
 
