@@ -2,9 +2,12 @@ import React from 'react';
 import Plot from 'react-plotly.js';
 import Panel, { EmptyState } from './Panel';
 import { baseLayout, plotConfig, tokens } from '../theme/chartTheme';
+import { prepareVisitTrend } from '../utils/visitTrend';
 
 const VisitChart = ({ chartData }) => {
-  if (!chartData || chartData.length === 0) {
+  const { points, tickformat, hint } = prepareVisitTrend(chartData);
+
+  if (!points.length) {
     return (
       <Panel title="اتجاه الزيارات">
         <EmptyState />
@@ -14,9 +17,14 @@ const VisitChart = ({ chartData }) => {
 
   const layout = {
     ...baseLayout(),
-    margin: { t: 8, r: 12, b: 48, l: 44 },
+    margin: { t: 8, r: 16, b: 56, l: 44 },
     hovermode: 'x unified',
-    xaxis: { ...baseLayout().xaxis },
+    xaxis: {
+      ...baseLayout().xaxis,
+      type: 'date',
+      tickformat,
+      nticks: Math.min(8, points.length),
+    },
     yaxis: {
       ...baseLayout().yaxis,
       title: { text: 'زيارات', font: { size: 12, color: tokens.muted } },
@@ -25,22 +33,23 @@ const VisitChart = ({ chartData }) => {
 
   return (
     <Panel title="اتجاه الزيارات">
+      {hint ? <p className="text-xs text-muted -mt-2 mb-3">{hint}</p> : null}
       <Plot
         data={[
           {
-            x: chartData.map(item => item.date),
-            y: chartData.map(item => item.visitCount),
+            x: points.map(item => item.date),
+            y: points.map(item => item.visitCount),
             type: 'scatter',
-            mode: 'lines+markers',
-            marker: { color: tokens.camo, size: 6 },
-            line: { color: tokens.camo, width: 2 },
+            mode: points.length === 1 ? 'markers' : 'lines+markers',
+            marker: { color: tokens.camo, size: 7 },
+            line: { color: tokens.camo, width: 2, shape: 'linear' },
             hoverinfo: 'x+y',
           },
         ]}
         layout={layout}
         config={plotConfig}
         useResize={true}
-        style={{ width: '100%' }}
+        style={{ width: '100%', height: '360px' }}
       />
     </Panel>
   );
