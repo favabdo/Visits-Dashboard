@@ -83,7 +83,7 @@ export default function Settings() {
         <div className="login-hero-fade login-hero-fade-bottom" />
 
         <div className="login-hero-content">
-          <BrandLogo size={58} showTag />
+          <BrandLogo size={44} showTag />
           <h1>
             Better Performance.
             <br />

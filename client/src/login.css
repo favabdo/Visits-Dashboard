@@ -26,7 +26,7 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  object-position: center;
+  object-position: center 72%;
   pointer-events: none;
 }
 
@@ -40,22 +40,22 @@
 
 .login-hero-fade-top {
   top: 0;
-  height: 34%;
+  height: 28%;
   background: linear-gradient(
     180deg,
-    rgba(231, 243, 251, 0.55) 0%,
-    rgba(231, 243, 251, 0.22) 70%,
+    rgba(231, 243, 251, 0.5) 0%,
+    rgba(231, 243, 251, 0.18) 70%,
     rgba(231, 243, 251, 0) 100%
   );
 }
 
 .login-hero-fade-bottom {
   bottom: 0;
-  height: 18%;
+  height: 16%;
   background: linear-gradient(
     0deg,
-    rgba(231, 243, 251, 0.5) 0%,
-    rgba(231, 243, 251, 0.18) 70%,
+    rgba(231, 243, 251, 0.42) 0%,
+    rgba(231, 243, 251, 0.12) 70%,
     rgba(231, 243, 251, 0) 100%
   );
 }
@@ -63,9 +63,9 @@
 .login-hero-content {
   position: relative;
   z-index: 2;
-  width: min(560px, 90%);
+  width: min(420px, 86%);
   margin: 0 auto;
-  padding: 64px 16px 12px;
+  padding: 40px 12px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -74,50 +74,50 @@
 .login-hero .login-brand {
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 10px;
 }
 
 .login-hero .login-brand-mark {
-  width: 58px;
-  height: 58px;
+  width: 42px;
+  height: 42px;
   display: block;
   overflow: visible;
   background: transparent;
 }
 
 .login-hero .login-brand-name {
-  font-size: 34px;
+  font-size: 26px;
   line-height: 1;
   font-weight: 800;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.035em;
   color: #0a1b36;
   text-align: left;
 }
 
 .login-hero .login-brand-tag {
-  margin-top: 8px;
-  font-size: 11px;
+  margin-top: 6px;
+  font-size: 9px;
   font-weight: 500;
-  letter-spacing: 0.32em;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   color: #93a7b8;
   text-align: left;
 }
 
 .login-hero h1 {
-  margin: 30px 0 14px;
-  font-size: 42px;
-  line-height: 1.16;
-  letter-spacing: -0.04em;
+  margin: 18px 0 8px;
+  font-size: 30px;
+  line-height: 1.18;
+  letter-spacing: -0.035em;
   font-weight: 800;
   color: #0a1b36;
 }
 
 .login-hero-copy {
   margin: 0;
-  color: #5d7086;
-  font-size: 16px;
-  line-height: 1.55;
+  color: #6b7c90;
+  font-size: 13px;
+  line-height: 1.5;
   font-weight: 400;
 }
 
@@ -128,9 +128,9 @@
   align-items: center;
   justify-content: center;
   gap: 0;
-  padding: 12px 12px 36px;
+  padding: 8px 12px 28px;
   color: #6b7c90;
-  font-size: 13px;
+  font-size: 11px;
   line-height: 1.25;
   font-weight: 500;
   text-align: left;
@@ -139,8 +139,8 @@
 .login-features > div {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 26px;
+  gap: 10px;
+  padding: 0 20px;
 }
 
 .login-features > div + div {
@@ -148,20 +148,20 @@
 }
 
 .login-feature-icon {
-  width: 46px;
-  height: 46px;
+  width: 38px;
+  height: 38px;
   border: 1.5px solid #c5d3e3;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.7);
 }
 
 .login-feature-icon svg {
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
 }
 
 .login-panel {
@@ -406,11 +406,11 @@
   }
 
   .login-hero h1 {
-    font-size: 36px;
+    font-size: 26px;
   }
 
   .login-hero .login-brand-name {
-    font-size: 32px;
+    font-size: 22px;
   }
 
   .login-features {
