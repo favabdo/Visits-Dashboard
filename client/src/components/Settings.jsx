@@ -30,6 +30,17 @@ function IconEye() {
   );
 }
 
+function IconEyeOff() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M3 3l18 18" />
+      <path d="M10.6 10.6A3 3 0 0 0 12 15a3 3 0 0 0 2.4-1.2" />
+      <path d="M9.9 5.1A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a18 18 0 0 1-4.2 4.8" />
+      <path d="M6.1 6.1A18 18 0 0 0 2 12s3.5 7 10 7a10.8 10.8 0 0 0 3.1-.5" />
+    </svg>
+  );
+}
+
 export default function Settings() {
   const remembered = localStorage.getItem('rememberUsername') || '';
   const [username, setUsername] = useState(remembered);
@@ -193,9 +204,9 @@ export default function Settings() {
                     type="button"
                     className="login-eye"
                     onClick={() => setShowPassword(v => !v)}
-                    aria-label="Toggle password"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
-                    <IconEye />
+                    {showPassword ? <IconEyeOff /> : <IconEye />}
                   </button>
                 </div>
                 <div className="login-row">
