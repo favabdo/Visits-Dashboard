@@ -89,7 +89,7 @@ export default function Settings() {
   return (
     <div className="login-page" dir="ltr">
       <section className="login-hero">
-        <img className="login-hero-photo" src="/login-hero.jpg?v=3" alt="" />
+        <img className="login-hero-photo" src="/login-hero.jpg?v=2" alt="" />
         <div className="login-hero-fade login-hero-fade-top" />
         <div className="login-hero-fade login-hero-fade-bottom" />
 
