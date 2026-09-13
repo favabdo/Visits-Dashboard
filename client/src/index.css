@@ -86,6 +86,16 @@ input[type="password"] {
   display: none !important;
 }
 
+.js-plotly-plot {
+  cursor: default !important;
+}
+.js-plotly-plot .plotly,
+.js-plotly-plot .plotly .svg-container,
+.js-plotly-plot .plotly .cartesianlayer,
+.js-plotly-plot .plotly .gdcontainer {
+  cursor: default !important;
+}
+
 /* شريط تقدّم متحرك يُستخدم في شاشات التحميل */
 @keyframes loading-bar-slide {
   0% {
