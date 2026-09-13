@@ -76,7 +76,7 @@ router.get('/', authenticate, async (req, res) => {
     // جلب أسماء المندوبين من جدول wh_SalesReps استعدادًا للاستبدال
     let repNameMap = new Map();
     try {
-      const repResult = await pool.request().query('SELECT ID, Name FROM wh_SalesReps');
+      const repResult = await pool.request().query('SELECT ID, Name_AR AS Name FROM wh_SalesReps');
       repNameMap = new Map(
         (repResult.recordset || []).map(r => [String(r.ID), r.Name || `مندوب ${r.ID}`])
       );
