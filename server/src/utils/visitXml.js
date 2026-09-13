@@ -66,14 +66,25 @@ function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, custome
     return name && name.trim() !== '' ? name : custId;
   };
 
+  const normalizeFilterDate = (d) => {
+    if (!d) return d;
+    const s = String(d).trim();
+    if (/^\d{8}$/.test(s)) {
+      return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
+    }
+    return s.slice(0,10);
+  };
+  const start = normalizeFilterDate(startDate);
+  const end = normalizeFilterDate(endDate);
+
   const payload = parsed?.DataPayload || parsed || {};
   const questions = pickItems(payload, 'Questions', 'Question');
   const options = pickItems(payload, 'QuestionOptions', 'Option');
   let visits = pickItems(payload, 'Visits', 'Visit');
   let answers = pickItems(payload, 'VisitAnswers', 'Answer');
 
-  if (startDate || endDate) {
-    visits = visits.filter(v => inDateRange(visitDateKey(field(v, 'VisitDate')), startDate, endDate));
+  if (start || end) {
+    visits = visits.filter(v => inDateRange(visitDateKey(field(v, 'VisitDate')), start, end));
     const visitIds = new Set(visits.map(v => field(v, 'ID')).filter(Boolean));
     answers = answers.filter(a => visitIds.has(field(a, 'VisitId')));
   }
