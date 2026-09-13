@@ -103,17 +103,25 @@ router.get('/', authenticate, async (req, res) => {
 
     // جلب أسماء العملاء من إجراء wh_SalesrepCustomerWithBalances لكل مندوب
     let customerNameMap = new Map();
+    const getValue = (row, names) => {
+      for (const n of names) {
+        if (row[n] !== undefined) return row[n];
+        const key = Object.keys(row).find(k => k.toLowerCase() === n.toLowerCase());
+        if (key) return row[key];
+      }
+      return undefined;
+    };
     if (repIds.length > 0) {
       try {
         for (const repId of repIds) {
           try {
-            const custResult = await pool.request()
-              .input('SalesRepId', sql.Int, repId)
-              .execute('wh_SalesrepCustomerWithBalances');
-            const rows = custResult.recordsets?.[0] || [];
+            const repIdNum = parseInt(repId, 10);
+            if (isNaN(repIdNum)) continue;
+            const custResult = await pool.request().query(`EXEC wh_SalesrepCustomerWithBalances ${repIdNum}`);
+            const rows = custResult.recordset || [];
             for (const row of rows) {
-              const custId = String(row.CustomerID ?? row.ID ?? row.CustomerId ?? '');
-              const name = row.Name ?? row.CustomerName ?? row.NameAr ?? row.Name_AR ?? '';
+              const custId = String(getValue(row, ['CustomerID', 'ID', 'CustomerId', 'CustomerID']) || '');
+              const name = getValue(row, ['Name', 'CustomerName', 'NameAr', 'Name_AR', 'name', 'customername']) || '';
               if (custId && name) {
                 if (!customerNameMap.has(custId)) {
                   customerNameMap.set(custId, name);
