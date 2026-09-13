@@ -52,7 +52,14 @@ function parseCoord(value) {
   return Number.isFinite(num) ? num : null;
 }
 
-function buildDashboardFromXml(parsed, { startDate, endDate } = {}) {
+function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap } = {}) {
+  const repNames = repNameMap instanceof Map ? repNameMap : new Map();
+  const getRepName = (repId) => {
+    if (!repId) return 'غير معروف';
+    const name = repNames.get(String(repId));
+    return name && name.trim() !== '' ? name : `مندوب ${repId}`;
+  };
+
   const payload = parsed?.DataPayload || parsed || {};
   const questions = pickItems(payload, 'Questions', 'Question');
   const options = pickItems(payload, 'QuestionOptions', 'Option');
@@ -152,9 +159,10 @@ function buildDashboardFromXml(parsed, { startDate, endDate } = {}) {
     .map(a => {
       const visitId = field(a, 'VisitId');
       const visit = visits.find(v => field(v, 'ID') === visitId) || {};
+      const repId = field(visit, 'SalesRepId') || visitIdToRep.get(visitId);
       return {
         visitId,
-        salesRepId: field(visit, 'SalesRepId') || visitIdToRep.get(visitId) || '-',
+        salesRepId: getRepName(repId),
         customerId: field(visit, 'CustomerID') || '-',
         visitDate: visitDateKey(field(visit, 'VisitDate')),
         note: field(a, 'AnswerText'),
@@ -182,12 +190,12 @@ function buildDashboardFromXml(parsed, { startDate, endDate } = {}) {
     .sort((a, b) => a.date.localeCompare(b.date));
 
   const samplesByDelegate = Array.from(delegateAnswerCount.entries())
-    .map(([delegateId, value]) => ({ label: `مندوب ${delegateId}`, value }))
+    .map(([delegateId, value]) => ({ label: getRepName(delegateId), value }))
     .sort((a, b) => b.value - a.value);
 
   const delegatePerformance = Array.from(delegateSet)
     .map(delegateId => ({
-      delegate: `مندوب ${delegateId}`,
+      delegate: getRepName(delegateId),
       visits: delegateVisitCount.get(delegateId) || 0,
       samples: delegateAnswerCount.get(delegateId) || 0
     }))
@@ -201,7 +209,7 @@ function buildDashboardFromXml(parsed, { startDate, endDate } = {}) {
       return {
         latitude,
         longitude,
-        label: `مندوب ${field(v, 'SalesRepId') || 'غير معروف'}`,
+        label: getRepName(field(v, 'SalesRepId')),
         outOfRange: field(v, 'OutRange') === '1',
         value: 1
       };

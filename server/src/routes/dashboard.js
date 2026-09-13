@@ -73,6 +73,17 @@ router.get('/', authenticate, async (req, res) => {
     pool = new sql.ConnectionPool(getConnectionConfig(dbName));
     await pool.connect();
 
+    // جلب أسماء المندوبين من جدول wh_SalesReps استعدادًا للاستبدال
+    let repNameMap = new Map();
+    try {
+      const repResult = await pool.request().query('SELECT ID, Name FROM wh_SalesReps');
+      repNameMap = new Map(
+        (repResult.recordset || []).map(r => [String(r.ID), r.Name || `مندوب ${r.ID}`])
+      );
+    } catch (repErr) {
+      console.warn('Unable to fetch sales rep names from wh_SalesReps:', repErr.message);
+    }
+
     const result = await pool.request().execute('sp_GetVisitsAndQuestionsXML');
     const xmlString = extractXmlString(result);
 
@@ -82,7 +93,7 @@ router.get('/', authenticate, async (req, res) => {
     }
 
     const parsed = await parseXML(xmlString);
-    const data = buildDashboardFromXml(parsed, { startDate, endDate });
+    const data = buildDashboardFromXml(parsed, { startDate, endDate, repNameMap });
     console.log('Dashboard parsed', {
       database: dbName,
       visits: data.totals.totalVisits,
