@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getConnectionConfig, sql } = require('../config/db');
 const { parseXML } = require('../utils/xmlParser');
-const { buildDashboardFromXml } = require('../utils/visitXml');
+const { buildDashboardFromXml, pickItems, field } = require('../utils/visitXml');
 const authenticate = require('../middleware/authenticate');
 
 function extractXmlString(result) {
@@ -93,7 +93,43 @@ router.get('/', authenticate, async (req, res) => {
     }
 
     const parsed = await parseXML(xmlString);
-    const data = buildDashboardFromXml(parsed, { startDate, endDate, repNameMap });
+
+    // استخراج معرفات المندوبين من XML لاستدعاء إجراءات العملاء
+    const payload = parsed?.DataPayload || parsed || {};
+    const visits = pickItems(payload, 'Visits', 'Visit');
+    const repIds = [...new Set(
+      visits.map(v => field(v, 'SalesRepId')).filter(Boolean)
+    )];
+
+    // جلب أسماء العملاء من إجراء wh_SalesrepCustomerWithBalances لكل مندوب
+    let customerNameMap = new Map();
+    if (repIds.length > 0) {
+      try {
+        for (const repId of repIds) {
+          try {
+            const custResult = await pool.request()
+              .input('SalesRepId', sql.Int, repId)
+              .execute('wh_SalesrepCustomerWithBalances');
+            const rows = custResult.recordsets?.[0] || [];
+            for (const row of rows) {
+              const custId = String(row.CustomerID ?? row.ID ?? row.CustomerId ?? '');
+              const name = row.Name ?? row.CustomerName ?? row.NameAr ?? row.Name_AR ?? '';
+              if (custId && name) {
+                if (!customerNameMap.has(custId)) {
+                  customerNameMap.set(custId, name);
+                }
+              }
+            }
+          } catch (e) {
+            console.warn(`Failed to fetch customers for rep ${repId}:`, e.message);
+          }
+        }
+      } catch (e) {
+        console.warn('Error while fetching customer names:', e.message);
+      }
+    }
+
+    const data = buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, customerNameMap });
     console.log('Dashboard parsed', {
       database: dbName,
       visits: data.totals.totalVisits,

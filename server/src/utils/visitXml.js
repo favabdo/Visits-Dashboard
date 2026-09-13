@@ -52,12 +52,18 @@ function parseCoord(value) {
   return Number.isFinite(num) ? num : null;
 }
 
-function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap } = {}) {
+function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, customerNameMap } = {}) {
   const repNames = repNameMap instanceof Map ? repNameMap : new Map();
+  const custNames = customerNameMap instanceof Map ? customerNameMap : new Map();
   const getRepName = (repId) => {
     if (!repId) return 'غير معروف';
     const name = repNames.get(String(repId));
     return name && name.trim() !== '' ? name : `مندوب ${repId}`;
+  };
+  const getCustomerName = (custId) => {
+    if (!custId) return '-';
+    const name = custNames.get(String(custId));
+    return name && name.trim() !== '' ? name : custId;
   };
 
   const payload = parsed?.DataPayload || parsed || {};
@@ -160,10 +166,11 @@ function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap } = {}) 
       const visitId = field(a, 'VisitId');
       const visit = visits.find(v => field(v, 'ID') === visitId) || {};
       const repId = field(visit, 'SalesRepId') || visitIdToRep.get(visitId);
+      const custId = field(visit, 'CustomerID');
       return {
         visitId,
         salesRepId: getRepName(repId),
-        customerId: field(visit, 'CustomerID') || '-',
+        customerId: getCustomerName(custId),
         visitDate: visitDateKey(field(visit, 'VisitDate')),
         note: field(a, 'AnswerText'),
         createdAt: field(a, 'CreatedAt') || ''
