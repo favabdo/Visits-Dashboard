@@ -90,7 +90,9 @@ input[type="password"] {
   cursor: default !important;
 }
 .js-plotly-plot .plotly,
+.js-plotly-plot .plotly *,
 .js-plotly-plot .plotly .svg-container,
+.js-plotly-plot .plotly .svg-container *,
 .js-plotly-plot .plotly .cartesianlayer,
 .js-plotly-plot .plotly .gdcontainer {
   cursor: default !important;

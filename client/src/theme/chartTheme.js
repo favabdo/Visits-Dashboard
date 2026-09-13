@@ -45,6 +45,7 @@ export function baseLayout(title) {
       align: 'right',
     },
     hovermode: 'closest',
+    dragmode: false,
     xaxis: {
       gridcolor: tokens.grid,
       linecolor: tokens.line,
