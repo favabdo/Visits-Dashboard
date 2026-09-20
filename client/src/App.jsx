@@ -20,6 +20,7 @@ import Settings from './components/Settings';
 import NotesTable from './components/NotesTable';
 import LoadingScreen from './components/LoadingScreen';
 import DelegateStatsPage from './components/DelegateStatsPage';
+import DelegatesPage from './components/DelegatesPage';
 import { fetchDashboardData } from './services/api';
 
 function ErrorPanel({ message, onRetry }) {
@@ -58,27 +59,19 @@ function ErrorPanel({ message, onRetry }) {
   );
 }
 
-function OverviewHeader({ rangeLabel }) {
+function OverviewHeader() {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h2 className="text-xl font-extrabold tracking-tight text-ink">نظرة عامة</h2>
-        <p className="mt-1 text-sm text-muted">ملخّص أداء الفريق خلال الفترة المحددة</p>
-      </div>
-      <span
-        className="rounded-full border border-line bg-panel px-3.5 py-1.5 text-xs font-semibold tabular-nums text-muted shadow-soft"
-        dir={rangeLabel.dir}
-      >
-        {rangeLabel.text}
-      </span>
+    <div>
+      <h2 className="text-xl font-extrabold tracking-tight text-ink">نظرة عامة</h2>
+      <p className="mt-1 text-sm text-muted">ملخّص أداء الفريق خلال الفترة المحددة</p>
     </div>
   );
 }
 
-function OverviewPage({ data, rangeLabel }) {
+function OverviewPage({ data }) {
   return (
     <>
-      <OverviewHeader rangeLabel={rangeLabel} />
+      <OverviewHeader />
       <div className="space-y-6">
         <MetricsCards totals={data.totals} />
         <VisitChart chartData={data.visitTrend} />
@@ -124,35 +117,22 @@ function DashboardLayout() {
   }, [dateRange, reloadKey]);
 
   const handleRetry = () => setReloadKey(value => value + 1);
-
-  const hasRange = Boolean(dateRange.startDate || dateRange.endDate);
-  const rangeLabel = {
-    text: hasRange
-      ? `${dateRange.startDate || '—'}  ←  ${dateRange.endDate || '—'}`
-      : 'كل الفترات',
-    dir: hasRange ? 'ltr' : 'rtl',
-  };
-
-  const delegates = (data?.delegatePerformance || []).map(item => ({
-    name: item.delegate,
-    visits: item.visits,
-    samples: item.samples,
-  }));
+  const delegates = data?.delegates || [];
 
   return (
     <div className="min-h-screen bg-paper text-ink">
       <Header />
-      <DateFilterBar onDateChange={setDateRange} />
-      <div className="flex min-h-[calc(100vh-var(--header-h)-var(--filter-h))] flex-col lg:flex-row">
-        <Sidebar delegates={delegates} />
+      <div className="flex min-h-[calc(100vh-var(--header-h))] flex-col lg:flex-row">
+        <Sidebar delegatesCount={delegates.length} />
         <main className="min-w-0 flex-1 px-5 py-6 lg:px-8 lg:py-8">
-          <div className="mx-auto max-w-[1500px]">
+          <div className="mx-auto max-w-[1500px] space-y-6">
+            <DateFilterBar range={dateRange} onApply={setDateRange} />
             {loading ? (
               <LoadingScreen />
             ) : error ? (
               <ErrorPanel message={error} onRetry={handleRetry} />
             ) : (
-              <Outlet context={{ data, rangeLabel }} />
+              <Outlet context={{ data, delegates }} />
             )}
           </div>
         </main>
@@ -170,8 +150,8 @@ function RequireToken({ children }) {
 }
 
 function OverviewWrapper() {
-  const { data, rangeLabel } = useOutletContext();
-  return <OverviewPage data={data} rangeLabel={rangeLabel} />;
+  const { data } = useOutletContext();
+  return <OverviewPage data={data} />;
 }
 
 const router = createBrowserRouter(
@@ -188,6 +168,7 @@ const router = createBrowserRouter(
         }
       >
         <Route index element={<OverviewWrapper />} />
+        <Route path="delegates" element={<DelegatesPage />} />
         <Route path="delegates/:name" element={<DelegateStatsPage />} />
       </Route>
     </>

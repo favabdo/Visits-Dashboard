@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation, useNavigate, useOutletContext } from 'react-router-dom';
+import { Link, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import MetricsCards, { totalsCards } from './MetricsCards';
 import VisitChart from './VisitChart';
 import SamplesChart from './SamplesChart';
@@ -8,20 +8,20 @@ import NotesTable from './NotesTable';
 import Panel, { EmptyState } from './Panel';
 
 const DelegateStatsPage = () => {
-  const { data } = useOutletContext();
+  const { delegates } = useOutletContext();
   const navigate = useNavigate();
-  const location = useLocation();
-  const name = decodeURIComponent(location.pathname.split('/').filter(Boolean).pop() || '');
+  const { name: paramName } = useParams();
+  const name = paramName ? decodeURIComponent(paramName) : '';
 
-  const delegate = (data?.delegates || []).find(item => item.name === name);
+  const delegate = (delegates || []).find(item => item.name === name);
 
   if (!delegate) {
     return (
       <Panel>
         <EmptyState text="لم يتم العثور على إحصائيات هذا المندوب في الفترة المحددة" />
         <div className="mt-4 text-center">
-          <Link to="/" className="text-sm font-bold text-accent hover:underline">
-            العودة إلى الرئيسية
+          <Link to="/delegates" className="text-sm font-bold text-accent hover:underline">
+            العودة إلى قائمة المندوبين
           </Link>
         </div>
       </Panel>
@@ -66,10 +66,10 @@ const DelegateStatsPage = () => {
           </div>
         </div>
         <Link
-          to="/"
+          to="/delegates"
           className="rounded-full border border-line bg-panel px-3.5 py-1.5 text-xs font-semibold text-muted shadow-soft transition-colors hover:border-accent/40 hover:text-accent"
         >
-          نظرة عامة على الفريق
+          كل المندوبين
         </Link>
       </div>
 
