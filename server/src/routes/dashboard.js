@@ -52,6 +52,7 @@ function emptyDashboard() {
     visitTrend: [],
     samplesByDelegate: [],
     delegatePerformance: [],
+    delegates: [],
     geoData: [],
     ratingDistribution: [],
     competitorDistribution: [],

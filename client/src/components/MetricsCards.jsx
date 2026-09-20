@@ -102,19 +102,19 @@ function Card({ title, value, hint, tone = 'blue', icon }) {
   );
 }
 
-const MetricsCards = ({ data }) => {
-  const totals = data || {};
-  const avg = Number(totals.avgSamplesPerVisit || 0);
-  const completion = Number(totals.formCompletionRate || 0);
-  const outOfRange = Number(totals.outOfRangeRate || 0);
-  const totalVisits = Number(totals.totalVisits || 0);
-  const outVisits = Number(totals.outOfRangeVisits || 0);
+export const totalsCards = (totals) => {
+  const data = totals || {};
+  const avg = Number(data.avgSamplesPerVisit || 0);
+  const completion = Number(data.formCompletionRate || 0);
+  const outOfRange = Number(data.outOfRangeRate || 0);
+  const totalVisits = Number(data.totalVisits || 0);
+  const outVisits = Number(data.outOfRangeVisits || 0);
   const inVisits = Math.max(0, totalVisits - outVisits);
 
-  const cards = [
+  return [
     { title: 'الزيارات', value: totalVisits, tone: 'blue', icon: <IconRoute /> },
-    { title: 'إجابات الاستمارة', value: totals.totalSamples ?? 0, tone: 'teal', icon: <IconForm /> },
-    { title: 'المندوبون', value: totals.totalDelegates ?? 0, tone: 'slate', icon: <IconUsers /> },
+    { title: 'إجابات الاستمارة', value: data.totalSamples ?? 0, tone: 'teal', icon: <IconForm /> },
+    { title: 'المندوبون', value: data.totalDelegates ?? 0, tone: 'slate', icon: <IconUsers /> },
     {
       title: 'متوسط الإجابات / زيارة',
       value: avg.toFixed(2),
@@ -123,14 +123,14 @@ const MetricsCards = ({ data }) => {
     },
     {
       title: 'عملاء مميزون',
-      value: totals.uniqueCustomers ?? 0,
+      value: data.uniqueCustomers ?? 0,
       tone: 'green',
       icon: <IconStar />,
     },
     {
       title: 'استكمال الاستمارة',
       value: `${completion}%`,
-      hint: `${totals.completedVisits ?? 0} زيارة مكتملة`,
+      hint: `${data.completedVisits ?? 0} زيارة مكتملة`,
       tone: 'teal',
       icon: <IconCheck />,
     },
@@ -143,14 +143,14 @@ const MetricsCards = ({ data }) => {
       icon: <IconAlert />,
     },
   ];
-
-  return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {cards.map(card => (
-        <Card key={card.title} {...card} />
-      ))}
-    </div>
-  );
 };
+
+const MetricsCards = ({ totals, cards }) => (
+  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    {(cards || totalsCards(totals)).map(card => (
+      <Card key={card.title} {...card} />
+    ))}
+  </div>
+);
 
 export default MetricsCards;

@@ -1,7 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  createRoutesFromElements,
+  Navigate,
+  Outlet,
+  Route,
+  RouterProvider,
+  useOutletContext,
+} from 'react-router-dom';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
+import DateFilterBar from './components/DateFilterBar';
 import MetricsCards from './components/MetricsCards';
 import VisitChart from './components/VisitChart';
 import SamplesChart from './components/SamplesChart';
@@ -10,21 +19,8 @@ import GeoChart from './components/GeoChart';
 import Settings from './components/Settings';
 import NotesTable from './components/NotesTable';
 import LoadingScreen from './components/LoadingScreen';
+import DelegateStatsPage from './components/DelegateStatsPage';
 import { fetchDashboardData } from './services/api';
-
-function DashboardShell({ children, onDateChange }) {
-  return (
-    <div className="min-h-screen bg-paper text-ink">
-      <Header />
-      <div className="flex min-h-[calc(100vh-var(--header-h))] flex-col lg:flex-row">
-        <Sidebar onDateChange={onDateChange} />
-        <main className="min-w-0 flex-1 px-5 py-6 lg:px-8 lg:py-8">
-          <div className="mx-auto max-w-[1500px]">{children}</div>
-        </main>
-      </div>
-    </div>
-  );
-}
 
 function ErrorPanel({ message, onRetry }) {
   return (
@@ -79,7 +75,32 @@ function OverviewHeader({ rangeLabel }) {
   );
 }
 
-function DashboardPage() {
+function OverviewPage({ data, rangeLabel }) {
+  return (
+    <>
+      <OverviewHeader rangeLabel={rangeLabel} />
+      <div className="space-y-6">
+        <MetricsCards totals={data.totals} />
+        <VisitChart chartData={data.visitTrend} />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <SamplesChart chartData={data.ratingDistribution} title="تقييم مساحة العرض" />
+          <SamplesChart chartData={data.competitorDistribution} title="وجود منتجات منافسة" />
+        </div>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <SamplesChart chartData={data.stockoutItems} title="أصناف نفدت" />
+          <DelegatePerformanceChart chartData={data.delegatePerformance} title="أداء المندوبين" />
+        </div>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <SamplesChart chartData={data.samplesByDelegate} title="الإجابات حسب المندوب" />
+          <GeoChart chartData={data.geoData} title="الخريطة حسب النطاق" />
+        </div>
+        <NotesTable notes={data.notes} />
+      </div>
+    </>
+  );
+}
+
+function DashboardLayout() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -112,43 +133,31 @@ function DashboardPage() {
     dir: hasRange ? 'ltr' : 'rtl',
   };
 
-  if (loading) {
-    return (
-      <DashboardShell onDateChange={setDateRange}>
-        <LoadingScreen />
-      </DashboardShell>
-    );
-  }
-
-  if (error) {
-    return (
-      <DashboardShell onDateChange={setDateRange}>
-        <ErrorPanel message={error} onRetry={handleRetry} />
-      </DashboardShell>
-    );
-  }
+  const delegates = (data?.delegatePerformance || []).map(item => ({
+    name: item.delegate,
+    visits: item.visits,
+    samples: item.samples,
+  }));
 
   return (
-    <DashboardShell onDateChange={setDateRange}>
-      <OverviewHeader rangeLabel={rangeLabel} />
-      <div className="space-y-6">
-        <MetricsCards data={data.totals} />
-        <VisitChart chartData={data.visitTrend} />
-        <div className="grid gap-6 lg:grid-cols-2">
-          <SamplesChart chartData={data.ratingDistribution} title="تقييم مساحة العرض" />
-          <SamplesChart chartData={data.competitorDistribution} title="وجود منتجات منافسة" />
-        </div>
-        <div className="grid gap-6 lg:grid-cols-2">
-          <SamplesChart chartData={data.stockoutItems} title="أصناف نفدت" />
-          <DelegatePerformanceChart chartData={data.delegatePerformance} title="أداء المندوبين" />
-        </div>
-        <div className="grid gap-6 lg:grid-cols-2">
-          <SamplesChart chartData={data.samplesByDelegate} title="الإجابات حسب المندوب" />
-          <GeoChart chartData={data.geoData} title="الخريطة حسب النطاق" />
-        </div>
-        <NotesTable notes={data.notes} />
+    <div className="min-h-screen bg-paper text-ink">
+      <Header />
+      <DateFilterBar onDateChange={setDateRange} />
+      <div className="flex min-h-[calc(100vh-var(--header-h)-var(--filter-h))] flex-col lg:flex-row">
+        <Sidebar delegates={delegates} />
+        <main className="min-w-0 flex-1 px-5 py-6 lg:px-8 lg:py-8">
+          <div className="mx-auto max-w-[1500px]">
+            {loading ? (
+              <LoadingScreen />
+            ) : error ? (
+              <ErrorPanel message={error} onRetry={handleRetry} />
+            ) : (
+              <Outlet context={{ data, rangeLabel }} />
+            )}
+          </div>
+        </main>
       </div>
-    </DashboardShell>
+    </div>
   );
 }
 
@@ -160,6 +169,31 @@ function RequireToken({ children }) {
   return children;
 }
 
+function OverviewWrapper() {
+  const { data, rangeLabel } = useOutletContext();
+  return <OverviewPage data={data} rangeLabel={rangeLabel} />;
+}
+
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <>
+      <Route path="/login" element={<Settings />} />
+      <Route path="/settings" element={<Navigate to="/login" replace />} />
+      <Route
+        path="/*"
+        element={
+          <RequireToken>
+            <DashboardLayout />
+          </RequireToken>
+        }
+      >
+        <Route index element={<OverviewWrapper />} />
+        <Route path="delegates/:name" element={<DelegateStatsPage />} />
+      </Route>
+    </>
+  )
+);
+
 function App() {
   // إخفاء شاشة البداية بعد أول رسم للتطبيق
   useEffect(() => {
@@ -170,22 +204,7 @@ function App() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Settings />} />
-        <Route path="/settings" element={<Navigate to="/login" replace />} />
-        <Route
-          path="/*"
-          element={
-            <RequireToken>
-              <DashboardPage />
-            </RequireToken>
-          }
-        />
-      </Routes>
-    </Router>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;

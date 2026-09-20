@@ -3,17 +3,17 @@ import Panel, { EmptyState } from './Panel';
 
 const HEADERS = ['التاريخ', 'المندوب', 'العميل', 'الزيارة', 'الملاحظة'];
 
-const NotesTable = ({ notes }) => {
+const NotesTable = ({ notes, title = 'آخر ملاحظات المندوبين' }) => {
   if (!notes || notes.length === 0) {
     return (
-      <Panel title="آخر ملاحظات المندوبين">
+      <Panel title={title}>
         <EmptyState text="لا توجد ملاحظات" />
       </Panel>
     );
   }
 
   return (
-    <Panel title="آخر ملاحظات المندوبين">
+    <Panel title={title}>
       <div className="-mx-2 overflow-x-auto">
         <table className="min-w-full border-collapse text-right text-sm">
           <thead>

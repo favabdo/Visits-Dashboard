@@ -52,6 +52,29 @@ function parseCoord(value) {
   return Number.isFinite(num) ? num : null;
 }
 
+function asSortedCounts(counts) {
+  return Array.from(counts.entries())
+    .map(([label, value]) => ({ label, value }))
+    .sort((a, b) => b.value - a.value);
+}
+
+function buildGeoPoints(visits, getRepName) {
+  return visits
+    .map(v => {
+      const latitude = parseCoord(field(v, 'Latitude'));
+      const longitude = parseCoord(field(v, 'Longitude'));
+      if (latitude == null || longitude == null) return null;
+      return {
+        latitude,
+        longitude,
+        label: getRepName(field(v, 'SalesRepId')),
+        outOfRange: field(v, 'OutRange') === '1',
+        value: 1
+      };
+    })
+    .filter(Boolean);
+}
+
 function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, customerNameMap } = {}) {
   const repNames = repNameMap instanceof Map ? repNameMap : new Map();
   const custNames = customerNameMap instanceof Map ? customerNameMap : new Map();
@@ -152,9 +175,9 @@ function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, custome
   const stockQuestionId = findQuestionId(q => q.type === 'checklist') || '3';
   const notesQuestionId = findQuestionId(q => q.type === 'text') || '4';
 
-  const countOptions = (questionId) => {
+  const countOptionsFor = (answerList, questionId) => {
     const counts = new Map();
-    answers.forEach(a => {
+    answerList.forEach(a => {
       if (field(a, 'QuestionId') !== questionId) return;
       const optionId = field(a, 'SelectedOptionId');
       if (!optionId) return;
@@ -162,33 +185,41 @@ function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, custome
       const label = option?.text || `اختيار ${optionId}`;
       counts.set(label, (counts.get(label) || 0) + 1);
     });
-    return Array.from(counts.entries())
-      .map(([label, value]) => ({ label, value }))
-      .sort((a, b) => b.value - a.value);
+    return asSortedCounts(counts);
   };
+
+  const countOptions = (questionId) => countOptionsFor(answers, questionId);
 
   const ratingDistribution = countOptions(ratingQuestionId);
   const competitorDistribution = countOptions(competitorQuestionId);
   const stockoutItems = countOptions(stockQuestionId);
 
-  const notes = answers
-    .filter(a => field(a, 'QuestionId') === notesQuestionId && field(a, 'AnswerText'))
-    .map(a => {
-      const visitId = field(a, 'VisitId');
-      const visit = visits.find(v => field(v, 'ID') === visitId) || {};
-      const repId = field(visit, 'SalesRepId') || visitIdToRep.get(visitId);
-      const custId = field(visit, 'CustomerID');
-      return {
-        visitId,
-        salesRepId: getRepName(repId),
-        customerId: getCustomerName(custId),
-        visitDate: visitDateKey(field(visit, 'VisitDate')),
-        note: field(a, 'AnswerText'),
-        createdAt: field(a, 'CreatedAt') || ''
-      };
-    })
-    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
-    .slice(0, 20);
+  const visitById = new Map();
+  visits.forEach(v => {
+    const id = field(v, 'ID');
+    if (id) visitById.set(id, v);
+  });
+
+  const buildNotes = (answerList) =>
+    answerList
+      .filter(a => field(a, 'QuestionId') === notesQuestionId && field(a, 'AnswerText'))
+      .map(a => {
+        const visitId = field(a, 'VisitId');
+        const visit = visitById.get(visitId) || {};
+        const repId = field(visit, 'SalesRepId') || visitIdToRep.get(visitId);
+        const custId = field(visit, 'CustomerID');
+        return {
+          visitId,
+          salesRepId: getRepName(repId),
+          customerId: getCustomerName(custId),
+          visitDate: visitDateKey(field(visit, 'VisitDate')),
+          note: field(a, 'AnswerText'),
+          createdAt: field(a, 'CreatedAt') || ''
+        };
+      })
+      .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+
+  const notes = buildNotes(answers).slice(0, 20);
 
   const totalVisits = visits.length;
   const totalSamples = answers.length;
@@ -219,20 +250,67 @@ function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, custome
     }))
     .sort((a, b) => b.visits - a.visits);
 
-  const geoData = visits
-    .map(v => {
-      const latitude = parseCoord(field(v, 'Latitude'));
-      const longitude = parseCoord(field(v, 'Longitude'));
-      if (latitude == null || longitude == null) return null;
-      return {
-        latitude,
-        longitude,
-        label: getRepName(field(v, 'SalesRepId')),
-        outOfRange: field(v, 'OutRange') === '1',
-        value: 1
-      };
-    })
-    .filter(Boolean);
+  const geoData = buildGeoPoints(visits, getRepName);
+
+  const visitsByRep = new Map();
+  visits.forEach(v => {
+    const repId = field(v, 'SalesRepId');
+    if (repId === undefined) return;
+    if (!visitsByRep.has(repId)) visitsByRep.set(repId, []);
+    visitsByRep.get(repId).push(v);
+  });
+
+  const answersByRep = new Map();
+  answers.forEach(a => {
+    const repId = visitIdToRep.get(field(a, 'VisitId'));
+    if (repId === undefined) return;
+    if (!answersByRep.has(repId)) answersByRep.set(repId, []);
+    answersByRep.get(repId).push(a);
+  });
+
+  const delegates = Array.from(delegateSet).map(delegateId => {
+    const repVisits = visitsByRep.get(delegateId) || [];
+    const repAnswers = answersByRep.get(delegateId) || [];
+    const repVisitIds = new Set(repVisits.map(v => field(v, 'ID')).filter(Boolean));
+    const repAnsweredVisitIds = new Set(
+      repAnswers.map(a => field(a, 'VisitId')).filter(id => repVisitIds.has(id))
+    );
+    const repCompleted = repAnsweredVisitIds.size;
+    const repOutOfRange = repVisits.filter(v => field(v, 'OutRange') === '1').length;
+    const repTrendMap = new Map();
+    repVisits.forEach(v => {
+      const dateKey = visitDateKey(field(v, 'VisitDate'));
+      if (dateKey) repTrendMap.set(dateKey, (repTrendMap.get(dateKey) || 0) + 1);
+    });
+
+    return {
+      name: getRepName(delegateId),
+      totals: {
+        totalVisits: repVisits.length,
+        totalSamples: repAnswers.length,
+        avgSamplesPerVisit: Number(
+          (repVisits.length > 0 ? repAnswers.length / repVisits.length : 0).toFixed(2)
+        ),
+        uniqueCustomers: new Set(repVisits.map(v => field(v, 'CustomerID')).filter(Boolean)).size,
+        formCompletionRate: repVisits.length > 0
+          ? Number(((repCompleted / repVisits.length) * 100).toFixed(1))
+          : 0,
+        completedVisits: repCompleted,
+        outOfRangeRate: repVisits.length > 0
+          ? Number(((repOutOfRange / repVisits.length) * 100).toFixed(1))
+          : 0,
+        outOfRangeVisits: repOutOfRange
+      },
+      visitTrend: Array.from(repTrendMap.entries())
+        .map(([date, visitCount]) => ({ date, visitCount }))
+        .sort((a, b) => a.date.localeCompare(b.date)),
+      ratingDistribution: countOptionsFor(repAnswers, ratingQuestionId),
+      competitorDistribution: countOptionsFor(repAnswers, competitorQuestionId),
+      stockoutItems: countOptionsFor(repAnswers, stockQuestionId),
+      geoData: buildGeoPoints(repVisits, getRepName),
+      notes: buildNotes(repAnswers).slice(0, 20)
+    };
+  }).sort((a, b) => b.totals.totalVisits - a.totals.totalVisits);
 
   return {
     totals: {
@@ -249,6 +327,7 @@ function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, custome
     visitTrend,
     samplesByDelegate,
     delegatePerformance,
+    delegates,
     geoData,
     ratingDistribution,
     competitorDistribution,
