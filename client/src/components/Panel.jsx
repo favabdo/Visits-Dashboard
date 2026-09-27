@@ -1,14 +1,17 @@
 import React from 'react';
 
-export default function Panel({ title, children, className = '' }) {
+export default function Panel({ title, subtitle, children, className = '' }) {
   return (
     <section
       className={`rounded-card border border-line bg-panel p-5 shadow-soft lg:p-6 ${className}`}
     >
       {title && (
-        <div className="mb-5 flex items-center gap-2.5">
-          <span className="h-4 w-1 rounded-full bg-accent" aria-hidden="true" />
-          <h2 className="text-sm font-bold text-ink">{title}</h2>
+        <div className="mb-5">
+          <div className="flex items-center gap-2.5">
+            <span className="h-4 w-1 rounded-full bg-accent" aria-hidden="true" />
+            <h2 className="text-sm font-bold text-ink">{title}</h2>
+          </div>
+          {subtitle ? <p className="mt-1 ps-3.5 text-[11px] text-muted">{subtitle}</p> : null}
         </div>
       )}
       {children}

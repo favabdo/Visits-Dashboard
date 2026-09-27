@@ -14,6 +14,7 @@ import DateFilterBar from './components/DateFilterBar';
 import MetricsCards from './components/MetricsCards';
 import VisitChart from './components/VisitChart';
 import SamplesChart from './components/SamplesChart';
+import QuestionCharts from './components/QuestionCharts';
 import DelegatePerformanceChart from './components/DelegatePerformanceChart';
 import GeoChart from './components/GeoChart';
 import Settings from './components/Settings';
@@ -75,18 +76,12 @@ function OverviewPage({ data }) {
       <div className="space-y-6">
         <MetricsCards totals={data.totals} />
         <VisitChart chartData={data.visitTrend} />
+        <QuestionCharts questions={data.questions} />
         <div className="grid gap-6 lg:grid-cols-2">
-          <SamplesChart chartData={data.ratingDistribution} title="تقييم مساحة العرض" />
-          <SamplesChart chartData={data.competitorDistribution} title="وجود منتجات منافسة" />
-        </div>
-        <div className="grid gap-6 lg:grid-cols-2">
-          <SamplesChart chartData={data.stockoutItems} title="أصناف نفدت" />
           <DelegatePerformanceChart chartData={data.delegatePerformance} title="أداء المندوبين" />
-        </div>
-        <div className="grid gap-6 lg:grid-cols-2">
           <SamplesChart chartData={data.samplesByDelegate} title="الإجابات حسب المندوب" />
-          <GeoChart chartData={data.geoData} title="الخريطة حسب النطاق" />
         </div>
+        <GeoChart chartData={data.geoData} title="الخريطة حسب النطاق" />
         <NotesTable notes={data.notes} />
       </div>
     </>

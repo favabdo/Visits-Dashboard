@@ -12,10 +12,10 @@ const PALETTE = [
   tokens.slate,
 ];
 
-const SamplesChart = ({ chartData, title = 'التوزيع' }) => {
+const SamplesChart = ({ chartData, title = 'التوزيع', subtitle }) => {
   if (!chartData || chartData.length === 0) {
     return (
-      <Panel title={title}>
+      <Panel title={title} subtitle={subtitle}>
         <EmptyState />
       </Panel>
     );
@@ -42,7 +42,7 @@ const SamplesChart = ({ chartData, title = 'التوزيع' }) => {
   };
 
   return (
-    <Panel title={title}>
+    <Panel title={title} subtitle={subtitle}>
       <Plot
         data={[
           {

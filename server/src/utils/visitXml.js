@@ -155,32 +155,9 @@ function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, custome
     });
   });
 
-  const questionById = new Map();
-  questions.forEach(q => {
-    const questionId = field(q, 'QuestionId');
-    if (!questionId) return;
-    questionById.set(questionId, {
-      text: field(q, 'QuestionText') || `سؤال ${questionId}`,
-      type: field(q, 'QuestionType')
-    });
-  });
-
-  const findQuestionId = (predicate) => {
-    for (const [id, q] of questionById.entries()) {
-      if (predicate(q, id)) return id;
-    }
-    return undefined;
-  };
-
-  const ratingQuestionId = findQuestionId(q => q.type === 'dropdown') || '1';
-  const competitorQuestionId = findQuestionId(q => q.type === 'radio') || '2';
-  const stockQuestionId = findQuestionId(q => q.type === 'checklist') || '3';
-  const notesQuestionId = findQuestionId(q => q.type === 'text') || '4';
-
-  const countOptionsFor = (answerList, questionId) => {
+  const distributionFor = (answerList, questionId) => {
     const counts = new Map();
     answerList.forEach(a => {
-      if (field(a, 'QuestionId') !== questionId) return;
       const optionId = field(a, 'SelectedOptionId');
       if (!optionId) return;
       const option = optionById.get(`${questionId}::${optionId}`);
@@ -190,11 +167,30 @@ function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, custome
     return asSortedCounts(counts);
   };
 
-  const countOptions = (questionId) => countOptionsFor(answers, questionId);
+  // Every question the procedure returns drives its own chart; nothing is mapped by type.
+  const buildQuestions = (answerList) =>
+    questions
+      .map(q => {
+        const id = field(q, 'QuestionId');
+        const own = answerList.filter(a => field(a, 'QuestionId') === id);
+        const hasSelection = own.some(a => field(a, 'SelectedOptionId'));
+        const hasText = own.some(a => field(a, 'AnswerText'));
+        return {
+          id,
+          text: field(q, 'QuestionText') || `سؤال ${id}`,
+          type: field(q, 'QuestionType') || '',
+          kind: !hasSelection && hasText ? 'note' : 'choice',
+          answeredCount: own.length,
+          optionCount: options.filter(o => field(o, 'QuestionId') === id).length,
+          distribution: hasSelection ? distributionFor(own, id) : []
+        };
+      })
+      .filter(q => q.id !== undefined);
 
-  const ratingDistribution = countOptions(ratingQuestionId);
-  const competitorDistribution = countOptions(competitorQuestionId);
-  const stockoutItems = countOptions(stockQuestionId);
+  const questionStats = buildQuestions(answers);
+  const noteQuestionIds = new Set(
+    questionStats.filter(q => q.kind === 'note').map(q => q.id)
+  );
 
   const visitById = new Map();
   visits.forEach(v => {
@@ -204,7 +200,7 @@ function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, custome
 
   const buildNotes = (answerList) =>
     answerList
-      .filter(a => field(a, 'QuestionId') === notesQuestionId && field(a, 'AnswerText'))
+      .filter(a => noteQuestionIds.has(field(a, 'QuestionId')) && field(a, 'AnswerText'))
       .map(a => {
         const visitId = field(a, 'VisitId');
         const visit = visitById.get(visitId) || {};
@@ -306,9 +302,7 @@ function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, custome
       visitTrend: Array.from(repTrendMap.entries())
         .map(([date, visitCount]) => ({ date, visitCount }))
         .sort((a, b) => a.date.localeCompare(b.date)),
-      ratingDistribution: countOptionsFor(repAnswers, ratingQuestionId),
-      competitorDistribution: countOptionsFor(repAnswers, competitorQuestionId),
-      stockoutItems: countOptionsFor(repAnswers, stockQuestionId),
+      questions: buildQuestions(repAnswers),
       geoData: buildGeoPoints(repVisits, getRepName),
       notes: buildNotes(repAnswers).slice(0, 20)
     };
@@ -331,9 +325,7 @@ function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, custome
     delegatePerformance,
     delegates,
     geoData,
-    ratingDistribution,
-    competitorDistribution,
-    stockoutItems,
+    questions: questionStats,
     notes
   };
 }

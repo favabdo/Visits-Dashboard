@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import MetricsCards, { totalsCards } from './MetricsCards';
 import VisitChart from './VisitChart';
-import SamplesChart from './SamplesChart';
+import QuestionCharts from './QuestionCharts';
 import GeoChart from './GeoChart';
 import NotesTable from './NotesTable';
 import Panel, { EmptyState } from './Panel';
@@ -75,14 +75,8 @@ const DelegateStatsPage = () => {
 
       <MetricsCards cards={cards} />
       <VisitChart chartData={delegate.visitTrend} />
-      <div className="grid gap-6 lg:grid-cols-2">
-        <SamplesChart chartData={delegate.ratingDistribution} title="تقييم مساحة العرض" />
-        <SamplesChart chartData={delegate.competitorDistribution} title="وجود منتجات منافسة" />
-      </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <SamplesChart chartData={delegate.stockoutItems} title="أصناف نفدت" />
-        <GeoChart chartData={delegate.geoData} title="زيارات المندوب حسب النطاق" />
-      </div>
+      <QuestionCharts questions={delegate.questions} />
+      <GeoChart chartData={delegate.geoData} title="زيارات المندوب حسب النطاق" />
       <NotesTable notes={delegate.notes} title={`ملاحظات ${delegate.name}`} />
     </div>
   );

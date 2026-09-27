@@ -54,9 +54,7 @@ function emptyDashboard() {
     delegatePerformance: [],
     delegates: [],
     geoData: [],
-    ratingDistribution: [],
-    competitorDistribution: [],
-    stockoutItems: [],
+    questions: [],
     notes: []
   };
 }
