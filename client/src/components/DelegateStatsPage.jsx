@@ -3,6 +3,7 @@ import { Link, useNavigate, useOutletContext, useParams } from 'react-router-dom
 import MetricsCards, { totalsCards } from './MetricsCards';
 import VisitChart from './VisitChart';
 import QuestionCharts from './QuestionCharts';
+import ExecutiveKpis from './ExecutiveKpis';
 import GeoChart from './GeoChart';
 import NotesTable from './NotesTable';
 import Panel, { EmptyState } from './Panel';
@@ -74,6 +75,51 @@ const DelegateStatsPage = () => {
       </div>
 
       <MetricsCards cards={cards} />
+      <ExecutiveKpis kpis={delegate.kpis} totals={delegate.totals} />
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Panel title="التغطية الجغرافية">
+          <dl className="grid grid-cols-3 gap-3 text-center">
+            <div className="rounded-xl bg-panel-soft p-3">
+              <dt className="text-[11px] text-muted">نقاط مصوَّرة</dt>
+              <dd className="mt-1 text-lg font-extrabold tabular-nums text-ink">
+                {delegate.coverage?.points ?? 0}
+              </dd>
+            </div>
+            <div className="rounded-xl bg-panel-soft p-3">
+              <dt className="text-[11px] text-muted">اتساع النطاق</dt>
+              <dd className="mt-1 text-lg font-extrabold tabular-nums text-ink">
+                {delegate.coverage?.spanKm ?? 0} كم
+              </dd>
+            </div>
+            <div className="rounded-xl bg-panel-soft p-3">
+              <dt className="text-[11px] text-muted">برّه النطاق</dt>
+              <dd className="mt-1 text-lg font-extrabold tabular-nums text-choco">
+                {delegate.totals.outOfRangeVisits ?? 0}
+              </dd>
+            </div>
+          </dl>
+        </Panel>
+        <Panel title="أعلى الإجابات">
+          {delegate.kpis?.topAnswers?.length ? (
+            <ul className="divide-y divide-line/70">
+              {delegate.kpis.topAnswers.map((answer, index) => (
+                <li key={`${answer.question}-${answer.option}`} className="flex items-center gap-2.5 py-2">
+                  <span className="grid h-5 w-5 shrink-0 place-items-center rounded-md bg-accent-soft text-[10px] font-bold text-accent">
+                    {index + 1}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-[13px] text-ink">{answer.option}</span>
+                  <span className="shrink-0 text-[11px] text-muted">{answer.question}</span>
+                  <span className="w-14 shrink-0 text-end text-[12px] font-bold tabular-nums text-ink">
+                    {answer.value} · {answer.percentage}%
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyState text="لا توجد إجابات مسجَّلة" />
+          )}
+        </Panel>
+      </div>
       <VisitChart chartData={delegate.visitTrend} />
       <QuestionCharts questions={delegate.questions} />
       <GeoChart chartData={delegate.geoData} title="زيارات المندوب حسب النطاق" />

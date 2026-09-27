@@ -15,6 +15,7 @@ import MetricsCards from './components/MetricsCards';
 import VisitChart from './components/VisitChart';
 import SamplesChart from './components/SamplesChart';
 import QuestionCharts from './components/QuestionCharts';
+import ExecutiveKpis from './components/ExecutiveKpis';
 import DelegatePerformanceChart from './components/DelegatePerformanceChart';
 import GeoChart from './components/GeoChart';
 import Settings from './components/Settings';
@@ -22,6 +23,7 @@ import NotesTable from './components/NotesTable';
 import LoadingScreen from './components/LoadingScreen';
 import DelegateStatsPage from './components/DelegateStatsPage';
 import DelegatesPage from './components/DelegatesPage';
+import CustomersPage from './components/CustomersPage';
 import { fetchDashboardData } from './services/api';
 
 function ErrorPanel({ message, onRetry }) {
@@ -75,6 +77,7 @@ function OverviewPage({ data }) {
       <OverviewHeader />
       <div className="space-y-6">
         <MetricsCards totals={data.totals} />
+        <ExecutiveKpis kpis={data.kpis} totals={data.totals} />
         <VisitChart chartData={data.visitTrend} />
         <QuestionCharts questions={data.questions} />
         <div className="grid gap-6 lg:grid-cols-2">
@@ -122,6 +125,7 @@ function DashboardLayout() {
         open={navOpen}
         onClose={closeNav}
         delegatesCount={delegates.length}
+        customersCount={(data?.customers || []).length}
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <Header onOpenNav={() => setNavOpen(true)} />
@@ -171,6 +175,7 @@ const router = createBrowserRouter(
         <Route index element={<OverviewWrapper />} />
         <Route path="delegates" element={<DelegatesPage />} />
         <Route path="delegates/:name" element={<DelegateStatsPage />} />
+        <Route path="customers" element={<CustomersPage />} />
       </Route>
     </>
   )

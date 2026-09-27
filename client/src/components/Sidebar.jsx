@@ -20,7 +20,7 @@ const ITEMS = [
     to: '/delegates',
     end: false,
     label: 'المندوبون',
-    badge: true,
+    countKey: 'delegates',
     icon: (
       <>
         <circle cx="9.5" cy="8.5" r="3.2" />
@@ -30,10 +30,24 @@ const ITEMS = [
       </>
     ),
   },
+  {
+    to: '/customers',
+    end: false,
+    label: 'العملاء',
+    countKey: 'customers',
+    icon: (
+      <>
+        <path d="M4 20V7a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v13" />
+        <path d="M14 11h4a2 2 0 0 1 2 2v7" />
+        <path d="M3 20h18M8 9h2M8 13h2M8 17h2" />
+      </>
+    ),
+  },
 ];
 
-const Sidebar = ({ open, onClose, delegatesCount = 0 }) => {
+const Sidebar = ({ open, onClose, delegatesCount = 0, customersCount = 0 }) => {
   const username = localStorage.getItem('username');
+  const counts = { delegates: delegatesCount, customers: customersCount };
 
   useEffect(() => {
     if (!open) return undefined;
@@ -134,9 +148,9 @@ const Sidebar = ({ open, onClose, delegatesCount = 0 }) => {
                     {item.icon}
                   </svg>
                   {item.label}
-                  {item.badge && delegatesCount ? (
+                  {item.countKey && counts[item.countKey] ? (
                     <span className="ms-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[11px] font-bold tabular-nums text-white">
-                      {delegatesCount}
+                      {counts[item.countKey]}
                     </span>
                   ) : null}
                 </>

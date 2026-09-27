@@ -53,8 +53,18 @@ function emptyDashboard() {
     samplesByDelegate: [],
     delegatePerformance: [],
     delegates: [],
+    customers: [],
     geoData: [],
     questions: [],
+    kpis: {
+      questionCount: 0,
+      answeredQuestionCount: 0,
+      mostAnsweredQuestion: null,
+      leastAnsweredQuestion: null,
+      topAnswer: null,
+      topAnswers: [],
+      mostRequestedProduct: null
+    },
     notes: []
   };
 }

@@ -6,7 +6,6 @@ const STAT = 'text-center';
 
 const DelegateCard = ({ delegate }) => {
   const totals = delegate.totals || {};
-  const inRange = Math.max(0, (totals.totalVisits || 0) - (totals.outOfRangeVisits || 0));
 
   return (
     <Link
@@ -45,12 +44,14 @@ const DelegateCard = ({ delegate }) => {
           <p className="mt-0.5 text-[11px] text-muted">زيارة</p>
         </div>
         <div className={STAT}>
-          <p className="text-base font-extrabold tabular-nums text-ink">{totals.totalSamples ?? 0}</p>
-          <p className="mt-0.5 text-[11px] text-muted">إجابة</p>
+          <p className="text-base font-extrabold tabular-nums text-ink">{totals.uniqueCustomers ?? 0}</p>
+          <p className="mt-0.5 text-[11px] text-muted">عميل</p>
         </div>
         <div className={STAT}>
-          <p className="text-base font-extrabold tabular-nums text-success">{inRange}</p>
-          <p className="mt-0.5 text-[11px] text-muted">جوّه النطاق</p>
+          <p className="text-base font-extrabold tabular-nums text-success">
+            {totals.formCompletionRate ?? 0}%
+          </p>
+          <p className="mt-0.5 text-[11px] text-muted">استكمال</p>
         </div>
         <div className={STAT}>
           <p className="text-base font-extrabold tabular-nums text-choco">

@@ -1,3 +1,5 @@
+const { classifyNote } = require('./textRules');
+
 function asArray(value) {
   if (value == null || value === '') return [];
   return Array.isArray(value) ? value : [value];
@@ -52,10 +54,33 @@ function parseCoord(value) {
   return Number.isFinite(num) ? num : null;
 }
 
-function asSortedCounts(counts) {
-  return Array.from(counts.entries())
-    .map(([label, value]) => ({ label, value }))
-    .sort((a, b) => b.value - a.value);
+function pct(value, total) {
+  return total > 0 ? Number(((value * 100) / total).toFixed(1)) : 0;
+}
+
+const KM_PER_DEG_LAT = 111.32;
+
+// Bounding-box diagonal of a set of coordinates, in km: a cheap read of how wide
+// an area a rep actually covers.
+function geoCoverage(visits) {
+  const points = [];
+  visits.forEach(v => {
+    const latitude = parseCoord(field(v, 'Latitude'));
+    const longitude = parseCoord(field(v, 'Longitude'));
+    if (latitude != null && longitude != null) points.push({ latitude, longitude });
+  });
+  if (!points.length) return { points: 0, spanKm: 0 };
+
+  const lats = points.map(p => p.latitude);
+  const lons = points.map(p => p.longitude);
+  const midLat = (Math.min(...lats) + Math.max(...lats)) / 2;
+  const latKm = (Math.max(...lats) - Math.min(...lats)) * KM_PER_DEG_LAT;
+  const lonKm = (Math.max(...lons) - Math.min(...lons)) * KM_PER_DEG_LAT * Math.cos((midLat * Math.PI) / 180);
+
+  return {
+    points: points.length,
+    spanKm: Number(Math.sqrt(latKm * latKm + lonKm * lonKm).toFixed(1))
+  };
 }
 
 function buildGeoPoints(visits, getRepName) {
@@ -142,50 +167,136 @@ function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, custome
     }
   });
 
-  const optionById = new Map();
+  const optionsByQuestion = new Map();
   options.forEach(o => {
-    const optionId = field(o, 'OptionId');
-    if (!optionId) return;
     const questionId = field(o, 'QuestionId');
-    // OptionId is only unique within its question, so it must be namespaced.
-    optionById.set(`${questionId}::${optionId}`, {
-      questionId,
-      text: field(o, 'OptionText') || optionId,
+    const optionId = field(o, 'OptionId');
+    if (!questionId || !optionId) return;
+    if (!optionsByQuestion.has(questionId)) optionsByQuestion.set(questionId, []);
+    optionsByQuestion.get(questionId).push({
+      id: optionId,
+      text: field(o, 'OptionText'),
       order: Number(field(o, 'DisplayOrder') || 0)
     });
   });
 
-  const distributionFor = (answerList, questionId) => {
-    const counts = new Map();
-    answerList.forEach(a => {
-      const optionId = field(a, 'SelectedOptionId');
-      if (!optionId) return;
-      const option = optionById.get(`${questionId}::${optionId}`);
-      const label = option?.text || `اختيار ${optionId}`;
-      counts.set(label, (counts.get(label) || 0) + 1);
-    });
-    return asSortedCounts(counts);
-  };
-
-  // Every question the procedure returns drives its own chart; nothing is mapped by type.
-  const buildQuestions = (answerList) =>
-    questions
+  // A question's shape is read from its own answers, so any new QuestionType
+  // (or renamed one) flows into the analytics engine without a code change.
+  const buildQuestions = (answerList) => {
+    const totalAnswers = answerList.length;
+    return questions
       .map(q => {
         const id = field(q, 'QuestionId');
         const own = answerList.filter(a => field(a, 'QuestionId') === id);
         const hasSelection = own.some(a => field(a, 'SelectedOptionId'));
         const hasText = own.some(a => field(a, 'AnswerText'));
+
+        const answersPerVisit = new Map();
+        own.forEach(a => {
+          const visitId = field(a, 'VisitId');
+          answersPerVisit.set(visitId, (answersPerVisit.get(visitId) || 0) + 1);
+        });
+
+        const counts = new Map();
+        own.forEach(a => {
+          const optionId = field(a, 'SelectedOptionId');
+          if (!optionId) return;
+          counts.set(optionId, (counts.get(optionId) || 0) + 1);
+        });
+
+        const rows = [];
+        const seen = new Set();
+        (optionsByQuestion.get(id) || []).forEach(o => {
+          if (seen.has(o.id)) return;
+          seen.add(o.id);
+          rows.push({ label: o.text || 'خيار غير مسمى', value: counts.get(o.id) || 0, order: o.order });
+        });
+        counts.forEach((value, optionId) => {
+          if (seen.has(optionId)) return;
+          seen.add(optionId);
+          rows.push({ label: 'خيار غير مسمى', value, order: 0 });
+        });
+
+        const distribution = rows
+          .sort((a, b) => b.value - a.value || a.order - b.order)
+          .map((row, index) => ({
+            label: row.label,
+            value: row.value,
+            percentage: pct(row.value, own.length),
+            rank: index + 1
+          }));
+        const picked = distribution.filter(row => row.value > 0);
+
         return {
           id,
-          text: field(q, 'QuestionText') || `سؤال ${id}`,
+          text: field(q, 'QuestionText') || 'سؤال بدون اسم',
           type: field(q, 'QuestionType') || '',
-          kind: !hasSelection && hasText ? 'note' : 'choice',
+          kind:
+            !hasSelection && hasText
+              ? 'note'
+              : Array.from(answersPerVisit.values()).some(c => c > 1)
+                ? 'multi'
+                : 'single',
           answeredCount: own.length,
-          optionCount: options.filter(o => field(o, 'QuestionId') === id).length,
-          distribution: hasSelection ? distributionFor(own, id) : []
+          responsePercentage: pct(own.length, totalAnswers),
+          optionCount: (optionsByQuestion.get(id) || []).length,
+          distribution,
+          mostSelected: picked[0] || null,
+          leastSelected: picked.length > 1 ? picked[picked.length - 1] : null
         };
       })
       .filter(q => q.id !== undefined);
+  };
+
+  const buildKpis = questionStats => {
+    const choice = questionStats.filter(q => q.kind !== 'note');
+    const answered = choice
+      .filter(q => q.answeredCount > 0)
+      .sort((a, b) => b.answeredCount - a.answeredCount);
+
+    const brief = q => ({
+      text: q.text,
+      answeredCount: q.answeredCount,
+      responsePercentage: q.responsePercentage
+    });
+
+    const allPicks = [];
+    choice.forEach(q => {
+      (q.distribution || []).forEach(row => {
+        if (row.value > 0)
+          allPicks.push({
+            question: q.text,
+            option: row.label,
+            value: row.value,
+            percentage: row.percentage
+          });
+      });
+    });
+    allPicks.sort((a, b) => b.value - a.value);
+
+    const multi = choice
+      .filter(q => q.kind === 'multi' && q.answeredCount > 0)
+      .sort((a, b) => b.answeredCount - a.answeredCount)[0];
+    const multiTop =
+      multi && multi.mostSelected
+        ? {
+            question: multi.text,
+            option: multi.mostSelected.label,
+            value: multi.mostSelected.value,
+            percentage: multi.mostSelected.percentage
+          }
+        : null;
+
+    return {
+      questionCount: choice.length,
+      answeredQuestionCount: answered.length,
+      mostAnsweredQuestion: answered[0] ? brief(answered[0]) : null,
+      leastAnsweredQuestion: answered.length > 1 ? brief(answered[answered.length - 1]) : null,
+      topAnswer: allPicks[0] || null,
+      topAnswers: allPicks.slice(0, 3),
+      mostRequestedProduct: multiTop
+    };
+  };
 
   const questionStats = buildQuestions(answers);
   const noteQuestionIds = new Set(
@@ -219,18 +330,94 @@ function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, custome
 
   const notes = buildNotes(answers).slice(0, 20);
 
+  // Status is authoritative when the procedure exposes it; otherwise a visit that
+  // carries answers counts as completed.
+  const hasStatusColumn = visits.some(v => field(v, 'Status') !== undefined);
+  const visitsWithAnswers = new Set(answers.map(a => field(a, 'VisitId')).filter(Boolean));
+  const isCompleted = hasStatusColumn
+    ? v => field(v, 'Status') === '1'
+    : v => visitsWithAnswers.has(field(v, 'ID'));
+
   const totalVisits = visits.length;
   const totalSamples = answers.length;
   const totalDelegates = delegateSet.size;
   const avgSamplesPerVisit = totalVisits > 0 ? totalSamples / totalVisits : 0;
 
   const customers = new Set(visits.map(v => field(v, 'CustomerID')).filter(Boolean));
-  const visitsWithAnswers = new Set(answers.map(a => field(a, 'VisitId')).filter(Boolean));
-  const completedVisits = visits.filter(v => visitsWithAnswers.has(field(v, 'ID'))).length;
-  const formCompletionRate = totalVisits > 0 ? Number(((completedVisits / totalVisits) * 100).toFixed(1)) : 0;
+  const completedVisits = visits.filter(isCompleted).length;
+  const formCompletionRate = pct(completedVisits, totalVisits);
 
   const outOfRangeVisits = visits.filter(v => field(v, 'OutRange') === '1').length;
-  const outOfRangeRate = totalVisits > 0 ? Number(((outOfRangeVisits / totalVisits) * 100).toFixed(1)) : 0;
+  const outOfRangeRate = pct(outOfRangeVisits, totalVisits);
+
+  const customerStats = (() => {
+    const byId = new Map();
+    const entry = id => {
+      if (!byId.has(id)) {
+        byId.set(id, {
+          id,
+          name: getCustomerName(id),
+          visits: 0,
+          completed: 0,
+          outOfRange: 0,
+          firstVisit: null,
+          lastVisit: null,
+          reps: new Set(),
+          notesCount: 0,
+          followUpCount: 0,
+          negativeCount: 0,
+          lastNote: null
+        });
+      }
+      return byId.get(id);
+    };
+
+    visits.forEach(v => {
+      const id = field(v, 'CustomerID');
+      if (!id) return;
+      const customer = entry(id);
+      customer.visits += 1;
+      if (isCompleted(v)) customer.completed += 1;
+      if (field(v, 'OutRange') === '1') customer.outOfRange += 1;
+      const repId = field(v, 'SalesRepId');
+      if (repId !== undefined) customer.reps.add(getRepName(repId));
+      const dateKey = visitDateKey(field(v, 'VisitDate'));
+      if (dateKey) {
+        if (!customer.firstVisit || dateKey < customer.firstVisit) customer.firstVisit = dateKey;
+        if (!customer.lastVisit || dateKey > customer.lastVisit) customer.lastVisit = dateKey;
+      }
+    });
+
+    answers.forEach(a => {
+      if (!noteQuestionIds.has(field(a, 'QuestionId'))) return;
+      const text = field(a, 'AnswerText');
+      if (!text) return;
+      const visit = visitById.get(field(a, 'VisitId'));
+      const id = visit && field(visit, 'CustomerID');
+      if (!id) return;
+
+      const customer = entry(id);
+      const signal = classifyNote(text);
+      customer.notesCount += 1;
+      if (signal.followUp) customer.followUpCount += 1;
+      if (signal.negative) customer.negativeCount += 1;
+
+      const createdAt = field(a, 'CreatedAt') || '';
+      if (!customer.lastNote || createdAt >= customer.lastNote.at) {
+        customer.lastNote = { at: createdAt, text, sentiment: signal.sentiment };
+      }
+    });
+
+    return Array.from(byId.values())
+      .map(customer => ({
+        ...customer,
+        reps: Array.from(customer.reps),
+        completionRate: pct(customer.completed, customer.visits),
+        lastNote: customer.lastNote ? customer.lastNote.text : null,
+        lastNoteSentiment: customer.lastNote ? customer.lastNote.sentiment : null
+      }))
+      .sort((a, b) => b.visits - a.visits || String(a.name).localeCompare(String(b.name)));
+  })();
 
   const visitTrend = Array.from(visitTrendMap.entries())
     .map(([date, visitCount]) => ({ date, visitCount }))
@@ -273,13 +460,17 @@ function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, custome
     const repAnsweredVisitIds = new Set(
       repAnswers.map(a => field(a, 'VisitId')).filter(id => repVisitIds.has(id))
     );
-    const repCompleted = repAnsweredVisitIds.size;
+    const repCompleted = hasStatusColumn
+      ? repVisits.filter(v => field(v, 'Status') === '1').length
+      : repAnsweredVisitIds.size;
     const repOutOfRange = repVisits.filter(v => field(v, 'OutRange') === '1').length;
     const repTrendMap = new Map();
     repVisits.forEach(v => {
       const dateKey = visitDateKey(field(v, 'VisitDate'));
       if (dateKey) repTrendMap.set(dateKey, (repTrendMap.get(dateKey) || 0) + 1);
     });
+
+    const repQuestions = buildQuestions(repAnswers);
 
     return {
       name: getRepName(delegateId),
@@ -290,19 +481,17 @@ function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, custome
           (repVisits.length > 0 ? repAnswers.length / repVisits.length : 0).toFixed(2)
         ),
         uniqueCustomers: new Set(repVisits.map(v => field(v, 'CustomerID')).filter(Boolean)).size,
-        formCompletionRate: repVisits.length > 0
-          ? Number(((repCompleted / repVisits.length) * 100).toFixed(1))
-          : 0,
+        formCompletionRate: pct(repCompleted, repVisits.length),
         completedVisits: repCompleted,
-        outOfRangeRate: repVisits.length > 0
-          ? Number(((repOutOfRange / repVisits.length) * 100).toFixed(1))
-          : 0,
+        outOfRangeRate: pct(repOutOfRange, repVisits.length),
         outOfRangeVisits: repOutOfRange
       },
       visitTrend: Array.from(repTrendMap.entries())
         .map(([date, visitCount]) => ({ date, visitCount }))
         .sort((a, b) => a.date.localeCompare(b.date)),
-      questions: buildQuestions(repAnswers),
+      questions: repQuestions,
+      kpis: buildKpis(repQuestions),
+      coverage: geoCoverage(repVisits),
       geoData: buildGeoPoints(repVisits, getRepName),
       notes: buildNotes(repAnswers).slice(0, 20)
     };
@@ -324,8 +513,10 @@ function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, custome
     samplesByDelegate,
     delegatePerformance,
     delegates,
+    customers: customerStats,
     geoData,
     questions: questionStats,
+    kpis: buildKpis(questionStats),
     notes
   };
 }
