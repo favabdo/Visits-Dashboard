@@ -99,6 +99,8 @@ function DashboardLayout() {
   const [error, setError] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
+  const [navOpen, setNavOpen] = useState(false);
+  const closeNav = () => setNavOpen(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -120,10 +122,14 @@ function DashboardLayout() {
   const delegates = data?.delegates || [];
 
   return (
-    <div className="min-h-screen bg-paper text-ink">
-      <Header />
-      <div className="flex min-h-[calc(100vh-var(--header-h))] flex-col lg:flex-row">
-        <Sidebar delegatesCount={delegates.length} />
+    <div className="min-h-screen bg-paper text-ink md:flex">
+      <Sidebar
+        open={navOpen}
+        onClose={closeNav}
+        delegatesCount={delegates.length}
+      />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Header onOpenNav={() => setNavOpen(true)} />
         <main className="min-w-0 flex-1 px-5 py-6 lg:px-8 lg:py-8">
           <div className="mx-auto max-w-[1500px] space-y-6">
             <DateFilterBar range={dateRange} onApply={setDateRange} />
