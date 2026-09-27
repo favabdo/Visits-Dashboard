@@ -146,8 +146,10 @@ function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, custome
   options.forEach(o => {
     const optionId = field(o, 'OptionId');
     if (!optionId) return;
-    optionById.set(optionId, {
-      questionId: field(o, 'QuestionId'),
+    const questionId = field(o, 'QuestionId');
+    // OptionId is only unique within its question, so it must be namespaced.
+    optionById.set(`${questionId}::${optionId}`, {
+      questionId,
       text: field(o, 'OptionText') || optionId,
       order: Number(field(o, 'DisplayOrder') || 0)
     });
@@ -181,7 +183,7 @@ function buildDashboardFromXml(parsed, { startDate, endDate, repNameMap, custome
       if (field(a, 'QuestionId') !== questionId) return;
       const optionId = field(a, 'SelectedOptionId');
       if (!optionId) return;
-      const option = optionById.get(optionId);
+      const option = optionById.get(`${questionId}::${optionId}`);
       const label = option?.text || `اختيار ${optionId}`;
       counts.set(label, (counts.get(label) || 0) + 1);
     });
