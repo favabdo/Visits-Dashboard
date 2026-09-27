@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const dashboardRouter = require('./routes/dashboard');
+const analyticsRouter = require('./routes/analytics');
 const authRouter = require('./routes/auth');
 
 const app = express();
@@ -13,6 +14,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRouter);
+app.use('/api/analytics', analyticsRouter);
 app.use('/api/dashboard-data', dashboardRouter);
 
 // Root endpoint

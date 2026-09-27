@@ -25,9 +25,9 @@ const Header = ({ onOpenNav }) => (
       </button>
 
       <div className="min-w-0">
-        <p className="truncate text-[11px] font-medium text-muted">تحليل التغطية الميدانية</p>
+        <p className="truncate text-[11px] font-medium text-muted">تحليلات الزيارات والاستبيان الميداني</p>
         <h1 className="truncate text-[17px] font-extrabold tracking-tight text-ink">
-          لوحة الزيارات
+          منصة التحليلات
         </h1>
       </div>
     </div>

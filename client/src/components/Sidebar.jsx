@@ -2,52 +2,172 @@ import React, { useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import BrandLogo from './BrandLogo';
 
-const ITEMS = [
+const NAV_GROUPS = [
   {
-    to: '/',
-    end: true,
-    label: 'الرئيسية',
-    icon: (
-      <>
-        <rect x="3.5" y="3.5" width="7" height="7" rx="2" />
-        <rect x="13.5" y="3.5" width="7" height="7" rx="2" />
-        <rect x="3.5" y="13.5" width="7" height="7" rx="2" />
-        <rect x="13.5" y="13.5" width="7" height="7" rx="2" />
-      </>
-    ),
+    title: 'التنفيذ',
+    items: [
+      {
+        to: '/',
+        end: true,
+        label: 'نظرة تنفيذية',
+        icon: (
+          <>
+            <rect x="3.5" y="3.5" width="7" height="7" rx="2" />
+            <rect x="13.5" y="3.5" width="7" height="7" rx="2" />
+            <rect x="3.5" y="13.5" width="7" height="7" rx="2" />
+            <path d="M13.5 17h7M17 13.5v7" />
+          </>
+        ),
+      },
+      {
+        to: '/insights',
+        label: 'الرؤى والرصد',
+        countKey: 'insights',
+        alertKey: 'alerts',
+        icon: (
+          <>
+            <path d="M12 3a6 6 0 0 0-3.4 10.9c.6.4 1 1.1 1 1.8v.3h4.8v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3z" />
+            <path d="M9.5 19h5M10.5 21.5h3" />
+          </>
+        ),
+      },
+    ],
   },
   {
-    to: '/delegates',
-    end: false,
-    label: 'المندوبون',
-    countKey: 'delegates',
-    icon: (
-      <>
-        <circle cx="9.5" cy="8.5" r="3.2" />
-        <circle cx="16.5" cy="9.5" r="2.4" />
-        <path d="M3.5 19c1-3.4 3.4-5.2 6-5.2s5 1.8 6 5.2" />
-        <path d="M15.6 19c.5-1.9 1.9-3.2 3.4-3.2 1 0 1.9.5 2.5 1.5" />
-      </>
-    ),
+    title: 'العمليات الميدانية',
+    items: [
+      {
+        to: '/visits',
+        label: 'الزيارات',
+        countKey: 'visits',
+        icon: (
+          <>
+            <path d="M4 7.5h16M4 12h16M4 16.5h10" />
+            <circle cx="18.5" cy="16.5" r="2" />
+          </>
+        ),
+      },
+      {
+        to: '/customers',
+        label: 'العملاء',
+        countKey: 'customers',
+        icon: (
+          <>
+            <path d="M4 20V7a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v13" />
+            <path d="M14 11h4a2 2 0 0 1 2 2v7" />
+            <path d="M3 20h18M8 9h2M8 13h2M8 17h2" />
+          </>
+        ),
+      },
+      {
+        to: '/reps',
+        label: 'المندوبون',
+        countKey: 'reps',
+        icon: (
+          <>
+            <circle cx="9.5" cy="8.5" r="3.2" />
+            <circle cx="16.5" cy="9.5" r="2.4" />
+            <path d="M3.5 19c1-3.4 3.4-5.2 6-5.2s5 1.8 6 5.2" />
+            <path d="M15.6 19c.5-1.9 1.9-3.2 3.4-3.2 1 0 1.9.5 2.5 1.5" />
+          </>
+        ),
+      },
+      {
+        to: '/geography',
+        label: 'التغطية الجغرافية',
+        icon: (
+          <>
+            <path d="M9 4.5 3.5 6.8v12.7L9 17.2l6 2.3 5.5-2.3V4.5L15 6.8z" />
+            <path d="M9 4.5v12.7M15 6.8v12.7" />
+          </>
+        ),
+      },
+    ],
   },
   {
-    to: '/customers',
-    end: false,
-    label: 'العملاء',
-    countKey: 'customers',
-    icon: (
-      <>
-        <path d="M4 20V7a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v13" />
-        <path d="M14 11h4a2 2 0 0 1 2 2v7" />
-        <path d="M3 20h18M8 9h2M8 13h2M8 17h2" />
-      </>
-    ),
+    title: 'الاستبيان',
+    items: [
+      {
+        to: '/questions',
+        label: 'الأسئلة',
+        countKey: 'questions',
+        icon: (
+          <>
+            <circle cx="12" cy="12" r="8.5" />
+            <path d="M9.6 9.4a2.5 2.5 0 1 1 3.6 2.2c-.8.5-1.2 1-1.2 1.9v.3" />
+            <path d="M12 17.2v.2" />
+          </>
+        ),
+      },
+      {
+        to: '/answers',
+        label: 'الإجابات والخيارات',
+        countKey: 'answers',
+        icon: (
+          <>
+            <path d="M4 6.5h16M4 12h11M4 17.5h7" />
+            <path d="M17.5 15.5l2 2 3.5-3.8" />
+          </>
+        ),
+      },
+      {
+        to: '/text',
+        label: 'التحليل النصي',
+        countKey: 'notes',
+        icon: (
+          <>
+            <path d="M5 5.5h14v9.5H12l-4 3v-3H5z" />
+            <path d="M8.5 9h7M8.5 12h4" />
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    title: 'التحليل العميق',
+    items: [
+      {
+        to: '/trends',
+        label: 'الاتجاهات الزمنية',
+        icon: (
+          <>
+            <path d="M4 18.5V4M4 18.5h16" />
+            <path d="M7 15l3.5-4 3 2.4L19 7" />
+          </>
+        ),
+      },
+      {
+        to: '/cross',
+        label: 'التحليل المتقاطع',
+        icon: (
+          <>
+            <path d="M4 8h16M4 16h16M8 4v16M16 4v16" />
+          </>
+        ),
+      },
+    ],
+  },
+  {
+    title: 'الحوكمة',
+    items: [
+      {
+        to: '/quality',
+        label: 'جودة البيانات',
+        countKey: 'issues',
+        alertKey: 'highIssues',
+        icon: (
+          <>
+            <path d="M12 3.5 5 6v6c0 4 2.8 7 7 8.5 4.2-1.5 7-4.5 7-8.5V6z" />
+            <path d="M9.5 12.2l1.8 1.8 3.4-3.6" />
+          </>
+        ),
+      },
+    ],
   },
 ];
 
-const Sidebar = ({ open, onClose, delegatesCount = 0, customersCount = 0 }) => {
+const Sidebar = ({ open, onClose, counts = {} }) => {
   const username = localStorage.getItem('username');
-  const counts = { delegates: delegatesCount, customers: customersCount };
 
   useEffect(() => {
     if (!open) return undefined;
@@ -110,52 +230,66 @@ const Sidebar = ({ open, onClose, delegatesCount = 0, customersCount = 0 }) => {
           </button>
         </div>
 
-        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pt-3">
-          {ITEMS.map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              onClick={onClose}
-              className={({ isActive }) =>
-                `relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
-                  isActive
-                    ? 'bg-accent-soft text-ink shadow-soft'
-                    : 'text-muted hover:bg-panel-soft hover:text-ink'
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  {isActive ? (
-                    <span
-                      className="absolute inset-y-1.5 start-0 w-[3px] rounded-full bg-accent-hover"
-                      aria-hidden="true"
-                    />
-                  ) : null}
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="16"
-                    height="16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.75"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                    className={isActive ? 'shrink-0 text-accent' : 'shrink-0'}
-                  >
-                    {item.icon}
-                  </svg>
-                  {item.label}
-                  {item.countKey && counts[item.countKey] ? (
-                    <span className="ms-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[11px] font-bold tabular-nums text-white">
-                      {counts[item.countKey]}
-                    </span>
-                  ) : null}
-                </>
-              )}
-            </NavLink>
+        <nav className="flex flex-1 flex-col gap-4 overflow-y-auto px-3 pb-4">
+          {NAV_GROUPS.map(group => (
+            <div key={group.title}>
+              <p className="px-2.5 pb-1.5 text-[10.5px] font-bold tracking-wider text-slate">
+                {group.title}
+              </p>
+              <ul className="flex flex-col gap-0.5">
+                {group.items.map(item => (
+                  <li key={item.to}>
+                    <NavLink
+                      to={item.to}
+                      end={item.end}
+                      onClick={onClose}
+                      className={({ isActive }) =>
+                        `relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                          isActive
+                            ? 'bg-accent-soft text-ink shadow-soft'
+                            : 'text-muted hover:bg-panel-soft hover:text-ink'
+                        }`
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          {isActive ? (
+                            <span
+                              className="absolute inset-y-1.5 start-0 w-[3px] rounded-full bg-accent-hover"
+                              aria-hidden="true"
+                            />
+                          ) : null}
+                          <svg
+                            viewBox="0 0 24 24"
+                            width="16"
+                            height="16"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.75"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                            className={isActive ? 'shrink-0 text-accent' : 'shrink-0'}
+                          >
+                            {item.icon}
+                          </svg>
+                          {item.label}
+                          {item.countKey && counts[item.countKey] ? (
+                            <span
+                              className={`ms-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] font-bold tabular-nums text-white ${
+                                item.alertKey && counts[item.alertKey] ? 'bg-danger' : 'bg-accent'
+                              }`}
+                            >
+                              {counts[item.countKey]}
+                            </span>
+                          ) : null}
+                        </>
+                      )}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
         </nav>
 
@@ -168,7 +302,7 @@ const Sidebar = ({ open, onClose, delegatesCount = 0, customersCount = 0 }) => {
               <p className="truncate text-[13px] font-semibold text-ink">
                 {username || 'حساب المشرف'}
               </p>
-              <p className="text-[11px] text-muted">لوحة الزيارات</p>
+              <p className="text-[11px] text-muted">منصة تحليلات الزيارات</p>
             </div>
             <button
               type="button"

@@ -41,9 +41,4 @@ export const login = async (username, password) => {
   return response.data;
 };
 
-export const fetchDashboardData = async (params = {}) => {
-  const response = await api.get('/dashboard-data', { params });
-  return response.data;
-};
-
 export default api;

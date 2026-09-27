@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   createBrowserRouter,
   createRoutesFromElements,
@@ -6,143 +6,106 @@ import {
   Outlet,
   Route,
   RouterProvider,
-  useOutletContext,
 } from 'react-router-dom';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import DateFilterBar from './components/DateFilterBar';
-import MetricsCards from './components/MetricsCards';
-import VisitChart from './components/VisitChart';
-import SamplesChart from './components/SamplesChart';
-import QuestionCharts from './components/QuestionCharts';
-import ExecutiveKpis from './components/ExecutiveKpis';
-import DelegatePerformanceChart from './components/DelegatePerformanceChart';
-import GeoChart from './components/GeoChart';
-import Settings from './components/Settings';
-import NotesTable from './components/NotesTable';
 import LoadingScreen from './components/LoadingScreen';
-import DelegateStatsPage from './components/DelegateStatsPage';
-import DelegatesPage from './components/DelegatesPage';
-import CustomersPage from './components/CustomersPage';
-import { fetchDashboardData } from './services/api';
+import ErrorPanel from './components/ui/ErrorPanel';
+import Settings from './components/Settings';
+import { fetchAnalytics } from './services/analytics';
+import { AnalyticsContext } from './hooks/useAnalytics';
 
-function ErrorPanel({ message, onRetry }) {
-  return (
-    <div className="rounded-card border border-danger/25 bg-danger-soft p-5 shadow-soft">
-      <div className="flex items-start gap-3.5">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-panel text-danger">
-          <svg
-            viewBox="0 0 24 24"
-            width="20"
-            height="20"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M12 8v5M12 16.5v.2" />
-            <circle cx="12" cy="12" r="8.5" />
-          </svg>
-        </span>
-        <div className="min-w-0">
-          <p className="text-sm font-bold text-danger">تعذّر تحميل البيانات</p>
-          <p className="mt-1 text-sm leading-relaxed text-ink/80">{message}</p>
-          <button
-            type="button"
-            onClick={onRetry}
-            className="mt-3.5 rounded-xl bg-danger px-4 py-2 text-xs font-bold text-white transition-opacity hover:opacity-90"
-          >
-            إعادة المحاولة
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+import ExecutivePage from './pages/ExecutivePage';
+import InsightsPage from './pages/InsightsPage';
+import VisitsPage from './pages/VisitsPage';
+import CustomersPage from './pages/CustomersPage';
+import RepsPage from './pages/RepsPage';
+import RepDetailPage from './pages/RepDetailPage';
+import GeographyPage from './pages/GeographyPage';
+import QuestionsPage from './pages/QuestionsPage';
+import AnswersPage from './pages/AnswersPage';
+import TextPage from './pages/TextPage';
+import TrendsPage from './pages/TrendsPage';
+import CrossPage from './pages/CrossPage';
+import QualityPage from './pages/QualityPage';
 
-function OverviewHeader() {
-  return (
-    <div>
-      <h2 className="text-xl font-extrabold tracking-tight text-ink">نظرة عامة</h2>
-      <p className="mt-1 text-sm text-muted">ملخّص أداء الفريق خلال الفترة المحددة</p>
-    </div>
-  );
-}
-
-function OverviewPage({ data }) {
-  return (
-    <>
-      <OverviewHeader />
-      <div className="space-y-6">
-        <MetricsCards totals={data.totals} />
-        <ExecutiveKpis kpis={data.kpis} totals={data.totals} />
-        <VisitChart chartData={data.visitTrend} />
-        <QuestionCharts questions={data.questions} />
-        <div className="grid gap-6 lg:grid-cols-2">
-          <DelegatePerformanceChart chartData={data.delegatePerformance} title="أداء المندوبين" />
-          <SamplesChart chartData={data.samplesByDelegate} title="الإجابات حسب المندوب" />
-        </div>
-        <GeoChart chartData={data.geoData} title="الخريطة حسب النطاق" />
-        <NotesTable notes={data.notes} />
-      </div>
-    </>
-  );
+function readError(err) {
+  return err?.response?.data?.error || err?.message || 'تعذّر الوصول إلى الخدمة التحليلية';
 }
 
 function DashboardLayout() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [reloadKey, setReloadKey] = useState(0);
-  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
+  const [range, setRange] = useState({ startDate: '', endDate: '' });
   const [navOpen, setNavOpen] = useState(false);
+  const [result, setResult] = useState({ key: null, payload: null, error: null });
+  const [reloadKey, setReloadKey] = useState(0);
   const closeNav = () => setNavOpen(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const result = await fetchDashboardData(dateRange);
-        setData(result);
-      } catch (err) {
-        setError(err.response?.data?.error || err.message || 'خطأ غير متوقع');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [dateRange, reloadKey]);
+  const requestKey = `${range.startDate}|${range.endDate}|${reloadKey}`;
+  const loading = result.key !== requestKey;
 
-  const handleRetry = () => setReloadKey(value => value + 1);
-  const delegates = data?.delegates || [];
+  useEffect(() => {
+    let alive = true;
+    fetchAnalytics(range, { fresh: reloadKey > 0 })
+      .then(payload => alive && setResult({ key: requestKey, payload, error: null }))
+      .catch(err => alive && setResult({ key: requestKey, payload: null, error: readError(err) }));
+    return () => {
+      alive = false;
+    };
+  }, [range, requestKey, reloadKey]);
+
+  const retry = useCallback(() => setReloadKey(value => value + 1), []);
+
+  const payload = result.payload;
+  const totals = payload?.overview?.totals;
+  const quality = payload?.overview?.dataQuality;
+  const insightList = payload?.insights || [];
+
+  const contextValue = {
+    range,
+    setRange,
+    reloadKey,
+    retry,
+    payload,
+    loading,
+    error: result.error,
+    insights: insightList,
+  };
+
+  const counts = {
+    visits: totals?.visits,
+    customers: totals?.customers,
+    reps: totals?.reps,
+    questions: totals?.questions,
+    answers: totals?.answers,
+    notes: totals?.notesCount,
+    insights: insightList.length,
+    alerts: insightList.filter(item => item.level === 'alert').length,
+    issues: quality?.issueTypes,
+    highIssues: quality?.highSeverityTypes,
+  };
 
   return (
-    <div className="min-h-screen bg-paper text-ink md:flex">
-      <Sidebar
-        open={navOpen}
-        onClose={closeNav}
-        delegatesCount={delegates.length}
-        customersCount={(data?.customers || []).length}
-      />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Header onOpenNav={() => setNavOpen(true)} />
-        <main className="min-w-0 flex-1 px-5 py-6 lg:px-8 lg:py-8">
-          <div className="mx-auto max-w-[1500px] space-y-6">
-            <DateFilterBar range={dateRange} onApply={setDateRange} />
-            {loading ? (
-              <LoadingScreen />
-            ) : error ? (
-              <ErrorPanel message={error} onRetry={handleRetry} />
-            ) : (
-              <Outlet context={{ data, delegates }} />
-            )}
-          </div>
-        </main>
+    <AnalyticsContext.Provider value={contextValue}>
+      <div className="min-h-screen bg-paper text-ink md:flex">
+        <Sidebar open={navOpen} onClose={closeNav} counts={counts} />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Header onOpenNav={() => setNavOpen(true)} />
+          <main className="min-w-0 flex-1 px-5 py-6 lg:px-8 lg:py-8">
+            <div className="mx-auto max-w-[1500px] space-y-6">
+              <DateFilterBar range={range} onApply={setRange} />
+              {loading && !payload ? (
+                <LoadingScreen label="جاري حساب التحليلات" />
+              ) : result.error ? (
+                <ErrorPanel message={result.error} onRetry={retry} />
+              ) : (
+                <Outlet />
+              )}
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </AnalyticsContext.Provider>
   );
 }
 
@@ -154,16 +117,11 @@ function RequireToken({ children }) {
   return children;
 }
 
-function OverviewWrapper() {
-  const { data } = useOutletContext();
-  return <OverviewPage data={data} />;
-}
-
 const router = createBrowserRouter(
   createRoutesFromElements(
     <>
       <Route path="/login" element={<Settings />} />
-      <Route path="/settings" element={<Navigate to="/login" replace />} />
+      <Route path="/delegates" element={<Navigate to="/reps" replace />} />
       <Route
         path="/*"
         element={
@@ -172,10 +130,19 @@ const router = createBrowserRouter(
           </RequireToken>
         }
       >
-        <Route index element={<OverviewWrapper />} />
-        <Route path="delegates" element={<DelegatesPage />} />
-        <Route path="delegates/:name" element={<DelegateStatsPage />} />
+        <Route index element={<ExecutivePage />} />
+        <Route path="insights" element={<InsightsPage />} />
+        <Route path="visits" element={<VisitsPage />} />
         <Route path="customers" element={<CustomersPage />} />
+        <Route path="reps" element={<RepsPage />} />
+        <Route path="reps/:name" element={<RepDetailPage />} />
+        <Route path="geography" element={<GeographyPage />} />
+        <Route path="questions" element={<QuestionsPage />} />
+        <Route path="answers" element={<AnswersPage />} />
+        <Route path="text" element={<TextPage />} />
+        <Route path="trends" element={<TrendsPage />} />
+        <Route path="cross" element={<CrossPage />} />
+        <Route path="quality" element={<QualityPage />} />
       </Route>
     </>
   )
