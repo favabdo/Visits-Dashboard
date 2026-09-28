@@ -82,6 +82,48 @@ input[type="password"] {
   font-family: inherit;
 }
 
+/* خانات التاريخ: نفس معالجة Nile-Chat — إزالة مظهر النظام مع الحفاظ على
+   اتساع القطع الداخلية، وترتيب القطع ltr داخل صفحة rtl */
+.date-field {
+  direction: ltr;
+  text-align: start;
+  min-height: 42px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.date-field::-webkit-date-and-time-value {
+  text-align: inherit;
+  margin: 0;
+}
+
+.date-field::-webkit-datetime-edit {
+  color: var(--color-ink);
+}
+
+.date-field:invalid {
+  color: var(--color-muted);
+}
+
+.date-field::-webkit-calendar-picker-indicator {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.date-field:focus::-webkit-calendar-picker-indicator {
+  opacity: 0.95;
+}
+
+@media (max-width: 480px) {
+  .date-field {
+    padding: 11px 13px;
+    font-size: 13.5px;
+  }
+}
+
 .js-plotly-plot .plotly .modebar {
   display: none !important;
 }

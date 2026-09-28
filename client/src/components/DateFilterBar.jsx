@@ -44,7 +44,7 @@ const DateFilterBar = ({ range, onApply }) => {
     : 'كل الفترات';
 
   const inputClass =
-    'w-full rounded-xl border border-line bg-panel-soft px-3 py-2 text-sm text-ink tabular-nums outline-none transition focus:border-accent focus:bg-panel focus:ring-4 focus:ring-accent/12';
+    'date-field w-full min-w-0 appearance-none rounded-xl border border-line bg-panel-soft px-3.5 py-2.5 text-[13.5px] leading-normal text-ink tabular-nums outline-none transition focus:border-accent focus:bg-panel focus:ring-4 focus:ring-accent/12';
 
   return (
     <form
@@ -90,8 +90,8 @@ const DateFilterBar = ({ range, onApply }) => {
         ))}
       </div>
 
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="w-[9.5rem]">
+      <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+        <div className="min-w-0 flex-1 sm:flex-none sm:w-[10.5rem]">
           <label className="mb-1 block text-[11px] font-semibold text-muted" htmlFor="range-from">
             من
           </label>
@@ -103,7 +103,7 @@ const DateFilterBar = ({ range, onApply }) => {
             className={inputClass}
           />
         </div>
-        <div className="w-[9.5rem]">
+        <div className="min-w-0 flex-1 sm:flex-none sm:w-[10.5rem]">
           <label className="mb-1 block text-[11px] font-semibold text-muted" htmlFor="range-to">
             إلى
           </label>
@@ -115,19 +115,21 @@ const DateFilterBar = ({ range, onApply }) => {
             className={inputClass}
           />
         </div>
-        <button
-          type="submit"
-          className="rounded-xl bg-accent px-5 py-2 text-sm font-bold text-white shadow-glow transition-colors hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-        >
-          تطبيق
-        </button>
-        <button
-          type="button"
-          onClick={handleReset}
-          className="rounded-xl border border-line px-4 py-2 text-xs font-semibold text-muted transition-colors hover:border-accent/40 hover:text-accent"
-        >
-          مسح الفترة
-        </button>
+        <div className="flex gap-2 sm:gap-3">
+          <button
+            type="submit"
+            className="flex-1 rounded-xl bg-accent px-5 py-2.5 text-sm font-bold text-white shadow-glow transition-colors hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:flex-none sm:py-2"
+          >
+            تطبيق
+          </button>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="flex-1 rounded-xl border border-line px-4 py-2.5 text-xs font-semibold text-muted transition-colors hover:border-accent/40 hover:text-accent sm:flex-none sm:py-2"
+          >
+            مسح الفترة
+          </button>
+        </div>
       </div>
 
       <span
